@@ -1,0 +1,93 @@
+<div>
+
+    <h2>Contact_types</h2>
+
+    <script type = "text/ng-template" id="contact_type-save.html">
+        <form name="form" role="form" novalidate
+              class="ng-scope ng-invalid ng-invalid-required ng-dirty"
+              ng-submit="ok()">
+
+            <div class="modal-header">
+                <button type="button" class="close"
+                        ng-click="cancel()">&times;</button>
+                <h4 class="modal-title" id="myContact_typeLabel">Create or edit a Contact_type</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>ID</label>
+                    <input type="text" class="form-control" name="id"
+                           ng-model="contact_type.id" readonly>
+                </div>
+
+                
+                <div class="form-group">
+                    <label>name:</label>
+                    
+                    <input type="text" class="form-control" name="name"
+                           ng-model="contact_type.name" ng-required="true"
+                           />
+                    <span class="error" ng-show="form.name.$error.minlength">Must be at least  characters.</span>
+                    <span class="error" ng-show="form.name.$error.maxlength">Must be at most  characters.</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>lang_key:</label>
+                    
+                    <input type="text" class="form-control" name="lang_key"
+                           ng-model="contact_type.lang_key" ng-required="false"
+                           />
+                    <span class="error" ng-show="form.lang_key.$error.minlength">Must be at least  characters.</span>
+                    <span class="error" ng-show="form.lang_key.$error.maxlength">Must be at most  characters.</span>
+                </div>
+                
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" ng-click="cancel()">Cancel
+                </button>
+                <button type="submit" ng-disabled="form.$invalid" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </script>
+
+    <button class="btn btn-primary btn-lg" ng-click="create()">
+        <span class="glyphicon glyphicon-flash"></span> Create a new Contact_type
+    </button>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>ID</th>
+                
+                <th>name</th>
+                
+                <th>lang_key</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="contact_type in contact_types">
+                <td>{{contact_type.id}}</td>
+                
+                <td>{{contact_type.name }}</td>
+                
+                <td>{{contact_type.lang_key }}</td>
+                
+                <td>
+                    <button type="submit"
+                            ng-click="update(contact_type.id)"
+                            class="btn">
+                        <span class="glyphicon glyphicon-pencil"></span> Edit
+                    </button>
+                    <button type="submit"
+                            ng-click="delete(contact_type.id)"
+                            class="btn btn-danger">
+                        <span class="glyphicon glyphicon-remove-circle"></span> Delete
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

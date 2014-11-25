@@ -1,0 +1,266 @@
+<div>
+
+    <h2>Warnings</h2>
+
+    <script type = "text/ng-template" id="warning-save.html">
+        <form name="form" role="form" novalidate
+              class="ng-scope ng-invalid ng-invalid-required ng-dirty"
+              ng-submit="ok()">
+
+            <div class="modal-header">
+                <button type="button" class="close"
+                        ng-click="cancel()">&times;</button>
+                <h4 class="modal-title" id="myWarningLabel">Create or edit a Warning</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>ID</label>
+                    <input type="text" class="form-control" name="id"
+                           ng-model="warning.id" readonly>
+                </div>
+
+                
+                <div class="form-group">
+                    <label>id_message:</label>
+                    
+                    <input type="number" class="form-control" name="id_message"
+                           ng-model="warning.id_message" ng-required="true"
+                           />
+                    <span class="error" ng-show="form.id_message.$error.min">Must be greater than or equal to .</span>
+                    <span class="error" ng-show="form.id_message.$error.max">Must be less than or equal to .</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>id_contact_type:</label>
+                    
+                    <input type="number" class="form-control" name="id_contact_type"
+                           ng-model="warning.id_contact_type" ng-required="true"
+                           />
+                    <span class="error" ng-show="form.id_contact_type.$error.min">Must be greater than or equal to .</span>
+                    <span class="error" ng-show="form.id_contact_type.$error.max">Must be less than or equal to .</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>contact:</label>
+                    
+                    <input type="text" class="form-control" name="contact"
+                           ng-model="warning.contact" ng-required="true"
+                           />
+                    <span class="error" ng-show="form.contact.$error.minlength">Must be at least  characters.</span>
+                    <span class="error" ng-show="form.contact.$error.maxlength">Must be at most  characters.</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>sent:</label>
+                    
+                    <input type="checkbox" name="sent"
+                           ng-model="warning.sent" ng-required="true"/>
+                </div>
+                
+                <div class="form-group">
+                    <label>message:</label>
+                    
+                    <input type="text" class="form-control" name="message"
+                           ng-model="warning.message" ng-required="true"
+                           />
+                    <span class="error" ng-show="form.message.$error.minlength">Must be at least  characters.</span>
+                    <span class="error" ng-show="form.message.$error.maxlength">Must be at most  characters.</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>ip:</label>
+                    
+                    <input type="text" class="form-control" name="ip"
+                           ng-model="warning.ip" ng-required="true"
+                           />
+                    <span class="error" ng-show="form.ip.$error.minlength">Must be at least  characters.</span>
+                    <span class="error" ng-show="form.ip.$error.maxlength">Must be at most  characters.</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>browser:</label>
+                    
+                    <input type="text" class="form-control" name="browser"
+                           ng-model="warning.browser" ng-required="true"
+                           />
+                    <span class="error" ng-show="form.browser.$error.minlength">Must be at least  characters.</span>
+                    <span class="error" ng-show="form.browser.$error.maxlength">Must be at most  characters.</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>operating_system:</label>
+                    
+                    <input type="text" class="form-control" name="operating_system"
+                           ng-model="warning.operating_system" ng-required="true"
+                           />
+                    <span class="error" ng-show="form.operating_system.$error.minlength">Must be at least  characters.</span>
+                    <span class="error" ng-show="form.operating_system.$error.maxlength">Must be at most  characters.</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>device:</label>
+                    
+                    <input type="text" class="form-control" name="device"
+                           ng-model="warning.device" ng-required="true"
+                           />
+                    <span class="error" ng-show="form.device.$error.minlength">Must be at least  characters.</span>
+                    <span class="error" ng-show="form.device.$error.maxlength">Must be at most  characters.</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>raw:</label>
+                    
+                    <input type="text" class="form-control" name="raw"
+                           ng-model="warning.raw" ng-required="true"
+                           />
+                    <span class="error" ng-show="form.raw.$error.minlength">Must be at least  characters.</span>
+                    <span class="error" ng-show="form.raw.$error.maxlength">Must be at most  characters.</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>created_by:</label>
+                    
+                    <input type="text" class="form-control" name="created_by"
+                           ng-model="warning.created_by" ng-required="true"
+                           />
+                    <span class="error" ng-show="form.created_by.$error.minlength">Must be at least  characters.</span>
+                    <span class="error" ng-show="form.created_by.$error.maxlength">Must be at most  characters.</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>created_date:</label>
+                    
+                    <input type="text" class="form-control" name="created_date" ui-date="created_dateDateOptions" ui-date-format="yy-mm-dd" 
+                           ng-model="warning.created_date" ng-required="true"/>
+                </div>
+                
+                <div class="form-group">
+                    <label>last_modified_by:</label>
+                    
+                    <input type="text" class="form-control" name="last_modified_by"
+                           ng-model="warning.last_modified_by" ng-required="false"
+                           />
+                    <span class="error" ng-show="form.last_modified_by.$error.minlength">Must be at least  characters.</span>
+                    <span class="error" ng-show="form.last_modified_by.$error.maxlength">Must be at most  characters.</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>last_modified_date:</label>
+                    
+                    <input type="text" class="form-control" name="last_modified_date" ui-date="last_modified_dateDateOptions" ui-date-format="yy-mm-dd" 
+                           ng-model="warning.last_modified_date" ng-required="false"/>
+                </div>
+                
+                <div class="form-group">
+                    <label>lang_key:</label>
+                    
+                    <input type="text" class="form-control" name="lang_key"
+                           ng-model="warning.lang_key" ng-required="false"
+                           />
+                    <span class="error" ng-show="form.lang_key.$error.minlength">Must be at least  characters.</span>
+                    <span class="error" ng-show="form.lang_key.$error.maxlength">Must be at most  characters.</span>
+                </div>
+                
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" ng-click="cancel()">Cancel
+                </button>
+                <button type="submit" ng-disabled="form.$invalid" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </script>
+
+    <button class="btn btn-primary btn-lg" ng-click="create()">
+        <span class="glyphicon glyphicon-flash"></span> Create a new Warning
+    </button>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>ID</th>
+                
+                <th>id_message</th>
+                
+                <th>id_contact_type</th>
+                
+                <th>contact</th>
+                
+                <th>sent</th>
+                
+                <th>message</th>
+                
+                <th>ip</th>
+                
+                <th>browser</th>
+                
+                <th>operating_system</th>
+                
+                <th>device</th>
+                
+                <th>raw</th>
+                
+                <th>created_by</th>
+                
+                <th>created_date</th>
+                
+                <th>last_modified_by</th>
+                
+                <th>last_modified_date</th>
+                
+                <th>lang_key</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="warning in warnings">
+                <td>{{warning.id}}</td>
+                
+                <td>{{warning.id_message }}</td>
+                
+                <td>{{warning.id_contact_type }}</td>
+                
+                <td>{{warning.contact }}</td>
+                
+                <td>{{warning.sent }}</td>
+                
+                <td>{{warning.message }}</td>
+                
+                <td>{{warning.ip }}</td>
+                
+                <td>{{warning.browser }}</td>
+                
+                <td>{{warning.operating_system }}</td>
+                
+                <td>{{warning.device }}</td>
+                
+                <td>{{warning.raw }}</td>
+                
+                <td>{{warning.created_by }}</td>
+                
+                <td>{{warning.created_date  | date:'yyyy-MM-dd'}}</td>
+                
+                <td>{{warning.last_modified_by }}</td>
+                
+                <td>{{warning.last_modified_date  | date:'yyyy-MM-dd'}}</td>
+                
+                <td>{{warning.lang_key }}</td>
+                
+                <td>
+                    <button type="submit"
+                            ng-click="update(warning.id)"
+                            class="btn">
+                        <span class="glyphicon glyphicon-pencil"></span> Edit
+                    </button>
+                    <button type="submit"
+                            ng-click="delete(warning.id)"
+                            class="btn btn-danger">
+                        <span class="glyphicon glyphicon-remove-circle"></span> Delete
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
