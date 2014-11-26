@@ -1,5 +1,6 @@
 package models
 
+
 type Warning struct {
     Id int `json:"id"`
     
