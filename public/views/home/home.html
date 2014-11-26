@@ -1,12 +1,112 @@
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-8">
-            <h1>Welcome to Warnabroda!</h1>
-            <p class="lead">This is your homepage, ready for editing</p>
+<div ng-cloak>
+	<div class="row">
+		<div class="col-md-6">
+			<h1 translate="main.title">Welcome, Warn A Broda!</h1>
+			<p class="lead" translate="main.subtitle">Let your friend know
+				something secretly</p>				
+			<div class="alert alert-success" ng-show="amigoAvisado"
+				translate="aviso.amigo_avisado">
+				<strong>Amigo avisado com sucesso!</strong>
+			</div>
+			<div class="alert alert-danger" ng-show="error"
+				translate="aviso.error">
+				<strong>Ups algum erro ocorreu!</strong>
+			</div>
+			<form name="form" role="form" novalidate
+				class="ng-scope ng-invalid ng-invalid-required ng-dirty ng-valid-minlength"
+				ng-submit="enviar()">
 
-            <p>
-             <span translate="main.like">If you like this Angular-Go-Martini generator, please give us a star at </span>&nbsp;<a href="https://github.com/rayokota/generator-angular-go-martini" target="_blank" translate="main.github">Github</a>!
-            </p>
-        </div>
-    </div>
+				<div class="form-group">
+					<label translate="aviso.amigo_voce">Amigo você: </label> <select
+						class="form-control" ng-model="aviso.idTipoAviso"
+						ng-options="avisoTipo.id as avisoTipo.tipoAviso for avisoTipo  in avisoTipos"
+						required>
+					</select>
+				</div>
+
+				<div class="form-group">
+					<label translate="aviso.tipo_notificacao">Notificar amigo
+						via: </label> <select class="form-control"
+						ng-model="aviso.idTipoNotificacao"
+						ng-change="showAvisoNotificacao()"
+						ng-options="notificacaoTipo.id as notificacaoTipo.tipoNotificacao for notificacaoTipo  in notificacaoTipos"
+						required>
+					</select>
+					<div class="warn" ng-show="notificacaoEnvio">
+						<small class="warn" ng-show="notificacaoEnvio"
+							translate="aviso.notificacao_envio"> Notificação de envio
+							imedito. </small>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label translate="aviso.contato">Contato do amigo</label> <input
+						type="text" class="form-control" name="type"
+						ng-model="aviso.contato" ng-minlength=1 ng-maxlength=100 required>
+				</div>
+
+				<div class="modal-footer">
+					<button type="submit" ng-disabled="form.$invalid"
+						class="btn btn-success">
+						<span class="glyphicon glyphicon-ok"></span> Avisar
+					</button>
+					<button class="btn btn-xs btn-info" data-toggle="modal"
+						data-target="#saibaMaisModal">
+						<span class="glyphicon glyphicon-flash"></span> Saiba mais
+					</button>
+					<div class="fb-like" data-href="https://www.facebook.com/daumtoque" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>
+				</div>
+				<input ng-model="aviso.browser" type="hidden"> <input
+					ng-model="aviso.ip" type="hidden" id="sender_ip">
+			</form>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="saibaMaisModal" tabindex="-1" role="dialog"
+	aria-labelledby="myAvisoLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"
+					aria-hidden="true">&times;</button>
+				<h4 class="modal-title" id="myAvisoLabel">Sobre o Warn a Broda</h4>
+			</div>
+			<div class="modal-body">
+				<div class="well">
+
+					<h1>Próximas Funcionalidades:</h1>
+					<ul>
+						<li>Envio de Mensagens por SMS</li>
+						<li>Envio de Mensagens por Facebook</li>
+						<li>Envio de Mensagens por WhatsApp</li>
+						<li>Envio de Mensagens por Twitter Direct Message</li>
+						<li>Declarações secretas de Amor</li>
+						<li>Feedback de recebimento de mensagem pelo amigo
+							notificado.</li>
+					</ul>
+					<br>
+					<div class="fb-like" data-href="https://www.facebook.com/daumtoque" data-layout="standard" data-action="like" data-show-faces="true" data-share="true"></div>
+					
+					<BR>
+					<p>
+						<i>Este aplicativo é feito por <a
+							href="https://www.linkedin.com/in/hbtsmith">Herbert</a> e <a
+							href="https://www.linkedin.com/in/ademarizu">Ademar</a>,
+							adoraríamos receber reclamações, sugestões e/ou elogios! <br>
+						<b>Muito Obrigado!</b><br></i><a
+							href="mailto:warnabroda@gmail.com">warnabroda@gmail.com</a>
+					</p>
+				</div>
+			</div>
+
+			<div class="modal-footer">
+				<button type="button" class="btn btn-sm btn-success"
+					data-dismiss="modal">
+					<span class="glyphicon glyphicon-ok"></span> Ok
+				</button>
+			</div>
+		</div>
+	</div>
 </div>

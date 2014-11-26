@@ -27,7 +27,7 @@ CREATE TABLE `contact_types` (
   `Name` varchar(255) DEFAULT NULL,
   `Lang_key` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -36,6 +36,7 @@ CREATE TABLE `contact_types` (
 
 LOCK TABLES `contact_types` WRITE;
 /*!40000 ALTER TABLE `contact_types` DISABLE KEYS */;
+INSERT INTO `contact_types` VALUES (1,'E-mail','br'),(2,'SMS','br'),(3,'Facebook','br');
 /*!40000 ALTER TABLE `contact_types` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -51,7 +52,7 @@ CREATE TABLE `messages` (
   `Name` varchar(255) DEFAULT NULL,
   `Lang_key` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -60,7 +61,7 @@ CREATE TABLE `messages` (
 
 LOCK TABLES `messages` WRITE;
 /*!40000 ALTER TABLE `messages` DISABLE KEYS */;
-INSERT INTO `messages` VALUES (1,'Está com Mal Hálito','br');
+INSERT INTO `messages` VALUES (1,'Está com Mal Hálito','br'),(2,'Está com cheio desagradável de suor','br'),(3,'Tem Sujeira nos dentes','br'),(4,'Tem Sinal de menstruação na roupa','br'),(5,'Tem Sugeira de merda no vaso de casa','br'),(6,'Está sendo traido(a)','br'),(7,'Está Fazendo barulho incomodo com a boca','br'),(8,'Está Fazendo barulho incomodo com pés ou mãos','br'),(9,'Está com chulé','br');
 /*!40000 ALTER TABLE `messages` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -113,7 +114,7 @@ CREATE TABLE `warnings` (
   `Last_modified_date` varchar(255) DEFAULT NULL,
   `Lang_key` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -122,6 +123,7 @@ CREATE TABLE `warnings` (
 
 LOCK TABLES `warnings` WRITE;
 /*!40000 ALTER TABLE `warnings` DISABLE KEYS */;
+INSERT INTO `warnings` VALUES (1,0,1,'',0,'','179.187.92.218','chrome','linux','unknown','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36','','0000-00-00','','0000-00-00',''),(2,1,1,'teste',0,'','179.187.92.218','chrome','linux','unknown','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36','','0000-00-00','','0000-00-00',''),(3,6,3,'hbtsmith',0,'','179.187.92.218','chrome','linux','unknown','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36','','0000-00-00','','0000-00-00','');
 /*!40000 ALTER TABLE `warnings` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -134,4 +136,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-11-25 19:15:41
+-- Dump completed on 2014-11-26  0:11:14
