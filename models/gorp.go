@@ -8,7 +8,9 @@ import (
 	"github.com/coopernurse/gorp"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"os"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -26,7 +28,10 @@ type CustomTypeConverter struct{}
 
 func init() {
 	log.Println("Opening db...")
-	db, err := sql.Open("mysql", "root:root@(localhost:3306)/warnabroda")
+	var password = os.Getenv("WARNAPASS")
+	path := []string{"root:", password, "@(localhost:3306)/warnabroda"}
+
+	db, err := sql.Open("mysql", strings.Join(path, ""))
 	checkErr(err, "opening db failed")
 	Dbm = &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{"InnoDB", "UTF8"}}
 	Dbm.TypeConverter = CustomTypeConverter{}
