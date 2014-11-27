@@ -31,6 +31,19 @@ func GetMessage(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, st
     return http.StatusOK, Must(enc.EncodeOne(entity))
 }
 
+func SelectMessage(db gorp.SqlExecutor, id int64) models.Message {
+    
+    entity := models.Message{}
+
+    err := db.SelectOne(&entity,"SELECT * FROM messages WHERE id=?", id)   
+    
+    if err != nil {
+        checkErr(err, "select failed")
+    }
+
+    return entity   
+}
+
 func AddMessage(entity models.Message, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
     err := db.Insert(&entity)
     if err != nil {

@@ -4,6 +4,7 @@ import (
     "warnabroda/models"
     "fmt"
     "net/http"
+    "math/rand"
     "strconv"
     "github.com/go-martini/martini"
     "github.com/coopernurse/gorp"
@@ -75,6 +76,23 @@ func DeleteSubject(db gorp.SqlExecutor, parms martini.Params) (int, string) {
         return http.StatusConflict, ""
     }
     return http.StatusNoContent, ""
+}
+
+func GetRandomSubject(db gorp.SqlExecutor) *models.Subject{
+    var list_subjects []models.Subject
+    var subject models.Subject
+    r := rand.New(rand.NewSource(99))
+    _, err := db.Select(&list_subjects, "SELECT * FROM subjects ORDER BY id")    
+    if err == nil {
+        total_subjects := len(list_subjects)-1
+        subject = list_subjects[r.Intn(total_subjects)]
+
+    } else {
+        checkErr(err, "SELECT ERROR")
+        subject = models.Subject{0, "Um amigo acaba de lhe dar um toque", ""}
+    }
+
+    return &subject
 }
 
 func subjectsToIface(v []models.Subject) []interface{} {

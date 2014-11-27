@@ -2,10 +2,12 @@ package routes
 
 import (
     "warnabroda/models"
-    "fmt"
     "net/http"
-    "strconv"
+    "io/ioutil"
+    "fmt"
     "time"
+    "strconv"
+    "strings"
     "github.com/go-martini/martini"
     "github.com/coopernurse/gorp"
     "github.com/mostafah/mandrill"
@@ -54,34 +56,51 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 }
 
 func sendEmail(entity*models.Warning, db gorp.SqlExecutor){
-    fmt.Println("Inicio, 世界")
+    fmt.Println("Mailling Routine Begin, 世界")
 
     mandrill.Key = "qUX983QXREtaLojEpJyxmw"
     // you can test your API key with Ping
     err := mandrill.Ping()
     // everything is OK if err is nil
 
-    // fmt.Println(err)
+    
+    template_byte, err := ioutil.ReadFile("./models/warning.html")
+    checkErr(err, "File Opening ERROR")
+    template_email_string := string(template_byte[:])
 
-    msg := mandrill.NewMessageTo(entity.Contact, "Um amigo acaba de lhe dar um toque")
-    msg.HTML = "HTML content"
+    subject := GetRandomSubject(db)
+
+    
+    message := SelectMessage(db, entity.Id_message)    
+    
+    var email_content string
+    email_content = strings.Replace(template_email_string, "{{warning}}", message.Name , 1)
+
+    msg := mandrill.NewMessageTo(entity.Contact, subject.Name)
+    msg.HTML = email_content
     // msg.Text = "plain text content" // optional
-    msg.Subject = "subject"
+    msg.Subject = subject.Name
     msg.FromEmail = "warnabroda@gmail.com"
-    msg.FromName = "WarnABroda: Dá um toque"
+    msg.FromName = "Warn A Broda: Dá um toque"
+    
     //envio assincrono = true // envio sincrono = false
     res, err := msg.Send(false)
 
     if res[0] != nil {
-        entity.Sent = true;
-        entity.Last_modified_date = models.JDate(time.Now())
-        _, err = db.Update(entity)
-        if err != nil {
-            checkErr(err, "update failed")     
-        }
+        UpdateWarningSent(entity, db)        
+    } else {
+        fmt.Println(res[0])
     }
-    fmt.Println(res[0])
-    fmt.Println("Termino, 世界")
+    fmt.Println("Mailling Routine End, 世界")
+}
+
+func UpdateWarningSent(entity*models.Warning, db gorp.SqlExecutor){
+    entity.Sent = true;
+    entity.Last_modified_date = models.JDate(time.Now())
+    _, err := db.Update(entity)
+    if err != nil {
+        checkErr(err, "update failed")     
+    }
 }
 
 func UpdateWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
