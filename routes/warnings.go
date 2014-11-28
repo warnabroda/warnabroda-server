@@ -62,22 +62,22 @@ func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {
 	err := mandrill.Ping()
 	// everything is OK if err is nil
 
+
+	//reads the e-mail template from a local file
 	template_byte, err := ioutil.ReadFile("./models/warning.html")
 	checkErr(err, "File Opening ERROR")
 	template_email_string := string(template_byte[:])
-	fmt.Println("OLA")
 
+	//Get a random subject for the e-mails subject
 	subject := GetRandomSubject(db)
 
+	//Get the label for the sending warning
 	message := SelectMessage(db, entity.Id_message)
-	fmt.Println("CHEGOU 1")
 
 	var email_content string
 	email_content = strings.Replace(template_email_string, "{{warning}}", message.Name, 1)
-	fmt.Println("CHEGOU 2")
 
 	msg := mandrill.NewMessageTo(entity.Contact, subject.Name)
-	fmt.Println("CHEGOU 3")
 	msg.HTML = email_content
 	// msg.Text = "plain text content" // optional
 	msg.Subject = subject.Name
