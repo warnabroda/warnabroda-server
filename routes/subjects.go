@@ -39,7 +39,7 @@ func GetRandomSubject() models.Subject {
 
 	 } else {
 		
-		subject = models.Subject{0, "Um amigo acaba de lhe dar um toque", "br"}
+		subject = models.Subject{0, "Um amigo(a) acaba de lhe dar um toque", "br"}
 	 }
 
 	return subject

@@ -8,13 +8,14 @@ import (
 	"github.com/mostafah/mandrill"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
 	"os"
 )
 
-
+//https://www.facilitamovel.com.br/api/simpleSend.ft?user=warnabroda&password=superwarnabroda951753&destinatario=4896662015&msg=WarnabrodaTest
 func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {	
 
 	mandrill.Key = "qUX983QXREtaLojEpJyxmw"
@@ -57,6 +58,49 @@ func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {
 	
 }
 
+func sendSMS(entity *models.Warning, db gorp.SqlExecutor){
+	message := SelectMessage(db, entity.Id_message)	
+	sms_message := "Ola Amigo(a), "
+	sms_message += "Você " + message.Name + ". "
+	sms_message += "Avise um amigo você também: www.warnabroda.com"
+	u, err := url.Parse("https://www.facilitamovel.com.br/api/simpleSend.ft?")
+	fmt.Println(u)
+	if err != nil {
+		checkErr(err, "Ugly URL")
+	}
+	u.Scheme = "https"
+	u.Host = "www.facilitamovel.com.br"
+	q := u.Query()
+	q.Set("user", "user")//warnabroda
+	q.Set("password", "password")//superwarnabroda951753
+	q.Set("destinatario", entity.Contact)
+	q.Set("msg",  sms_message)
+	u.RawQuery = q.Encode()
+	fmt.Println(u.String())
+
+	res, err := http.Get(u.String())
+    if err != nil {
+        checkErr(err, "SMS Not Sent")
+    }
+    robots, err := ioutil.ReadAll(res.Body)
+    res.Body.Close()
+    if err != nil {
+        checkErr(err, "No response from SMS Sender")
+    } else {
+    	entity.Message = string(robots[:])
+    	UpdateWarningSent(entity, db)    	
+    	fmt.Printf("%s", robots)
+    	fmt.Println("#####")
+    	fmt.Println(entity)
+    	fmt.Println("#####")
+    }
+
+
+	//?user=warnabroda&password=superwarnabroda951753&destinatario=4896662015&msg=WarnabrodaTest
+	//https://www.facilitamovel.com.br/api/simpleSend.ft?destinatario=4896662015&msg=Amigo%28a%29%2C+Voc%C3%AA+tem+sujeira+de+merda+grudada+no+sanit%C3%A1rio.+Avise+um+amigo+voc%C3%AA+tam%C3%A9m%3A+www.warnabroda.com&password=superwarnabroda951753&user=warnabroda
+
+}
+
 
 func GetWarnings(enc Encoder, db gorp.SqlExecutor) (int, string) {
 	var warnings []models.Warning
@@ -95,6 +139,8 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 	w.Header().Set("Location", fmt.Sprintf("/warnabroda/warnings/%d", entity.Id))
 	if entity.Id_contact_type == 1 {
 		go sendEmail(&entity, db)
+	} else if entity.Id_contact_type == 2 {
+		go sendSMS(&entity, db)
 	}
 	return http.StatusCreated, Must(enc.EncodeOne(entity))
 }

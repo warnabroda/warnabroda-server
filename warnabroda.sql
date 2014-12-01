@@ -36,7 +36,7 @@ CREATE TABLE `contact_types` (
 
 LOCK TABLES `contact_types` WRITE;
 /*!40000 ALTER TABLE `contact_types` DISABLE KEYS */;
-INSERT INTO `contact_types` VALUES (1,'E-mail','br'),(2,'SMS','br'),(3,'Facebook','br');
+INSERT INTO `contact_types` VALUES (1,'E-mail','br'),(2,'SMS','br');
 /*!40000 ALTER TABLE `contact_types` ENABLE KEYS */;
 UNLOCK TABLES;
 
