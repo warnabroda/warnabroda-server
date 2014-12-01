@@ -1,7 +1,7 @@
 package models
 
 type Contact_type struct {
-    Id int `json:"id"`
+    Id int64 `json:"id"`
     
     Name string `json:"name"`
   

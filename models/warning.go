@@ -2,7 +2,7 @@ package models
 
 
 type Warning struct {
-    Id int `json:"id"`
+    Id int64 `json:"id"`
     
     Id_message int64 `json:"id_message"`
   

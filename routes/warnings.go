@@ -11,7 +11,52 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"os"
 )
+
+
+func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {	
+
+	mandrill.Key = "qUX983QXREtaLojEpJyxmw"
+	// you can test your API key with Ping
+	err := mandrill.Ping()
+	// everything is OK if err is nil
+	
+	var wab_root = os.Getenv("WARNAROOT")
+	wab_email_template := wab_root + "/models/warning.html"
+	
+	//reads the e-mail template from a local file
+	template_byte, err := ioutil.ReadFile(wab_email_template)
+	checkErr(err, "File Opening ERROR")
+	template_email_string := string(template_byte[:])
+
+	//Get a random subject for the e-mails subject
+	subject := GetRandomSubject()
+
+	//Get the label for the sending warning
+	message := SelectMessage(db, entity.Id_message)	
+
+	var email_content string
+	email_content = strings.Replace(template_email_string, "{{warning}}", message.Name, 1)
+
+	msg := mandrill.NewMessageTo(entity.Contact, subject.Name)
+	msg.HTML = email_content
+	// msg.Text = "plain text content" // optional
+	msg.Subject = subject.Name
+	msg.FromEmail = "warnabroda@gmail.com"
+	msg.FromName = "Warn A Broda: Dá um toque"
+
+	//envio assincrono = true // envio sincrono = false
+	res, err := msg.Send(false)
+
+	if res[0] != nil {
+		UpdateWarningSent(entity, db)
+	} else {
+		fmt.Println(res[0])
+	}
+	
+}
+
 
 func GetWarnings(enc Encoder, db gorp.SqlExecutor) (int, string) {
 	var warnings []models.Warning
@@ -52,47 +97,6 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 		go sendEmail(&entity, db)
 	}
 	return http.StatusCreated, Must(enc.EncodeOne(entity))
-}
-
-func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {
-	fmt.Println("Mailling Routine Begin, 世界")
-
-	mandrill.Key = "qUX983QXREtaLojEpJyxmw"
-	// you can test your API key with Ping
-	err := mandrill.Ping()
-	// everything is OK if err is nil
-
-
-	//reads the e-mail template from a local file
-	template_byte, err := ioutil.ReadFile("./models/warning.html")
-	checkErr(err, "File Opening ERROR")
-	template_email_string := string(template_byte[:])
-
-	//Get a random subject for the e-mails subject
-	subject := GetRandomSubject(db)
-
-	//Get the label for the sending warning
-	message := SelectMessage(db, entity.Id_message)
-
-	var email_content string
-	email_content = strings.Replace(template_email_string, "{{warning}}", message.Name, 1)
-
-	msg := mandrill.NewMessageTo(entity.Contact, subject.Name)
-	msg.HTML = email_content
-	// msg.Text = "plain text content" // optional
-	msg.Subject = subject.Name
-	msg.FromEmail = "warnabroda@gmail.com"
-	msg.FromName = "Warn A Broda: Dá um toque"
-
-	//envio assincrono = true // envio sincrono = false
-	res, err := msg.Send(false)
-
-	if res[0] != nil {
-		UpdateWarningSent(entity, db)
-	} else {
-		fmt.Println(res[0])
-	}
-	fmt.Println("Mailling Routine End, 世界")
 }
 
 func UpdateWarningSent(entity *models.Warning, db gorp.SqlExecutor) {

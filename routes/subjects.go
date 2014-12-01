@@ -1,14 +1,49 @@
 package routes
 
 import (
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"fmt"
+	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 )
+
+var global_subjects []models.Subject
+
+func init(){
+	_, err := models.Dbm.Select(&global_subjects, "SELECT * FROM subjects ORDER BY Id")
+	if err != nil {
+		checkErr(err, "SELECT ERROR")
+	} 
+}
+
+
+func GetRandomSubject() models.Subject {		
+	
+	var subject models.Subject
+
+	// r := rand.New(rand.NewSource(99))
+	rand.Seed(time.Now().UTC().UnixNano())	
+	
+	 if len(global_subjects) > 0 {
+				
+	 	var index = rand.Intn(len(global_subjects))
+		
+	 	if index < len(global_subjects) {
+	 		subject = global_subjects[index]
+	 	} else {
+	 		subject = global_subjects[0]
+	 	}
+
+	 } else {
+		
+		subject = models.Subject{0, "Um amigo acaba de lhe dar um toque", "br"}
+	 }
+
+	return subject
+}
 
 func GetSubjects(enc Encoder, db gorp.SqlExecutor) (int, string) {
 	var subjects []models.Subject
@@ -30,75 +65,6 @@ func GetSubject(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, st
 	}
 	entity := obj.(*models.Subject)
 	return http.StatusOK, Must(enc.EncodeOne(entity))
-}
-
-func AddSubject(entity models.Subject, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
-	err := db.Insert(&entity)
-	if err != nil {
-		checkErr(err, "insert failed")
-		return http.StatusConflict, ""
-	}
-	w.Header().Set("Location", fmt.Sprintf("/warnabroda/subjects/%d", entity.Id))
-	return http.StatusCreated, Must(enc.EncodeOne(entity))
-}
-
-func UpdateSubject(entity models.Subject, enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
-	id, err := strconv.Atoi(parms["id"])
-	obj, _ := db.Get(models.Subject{}, id)
-	if err != nil || obj == nil {
-		checkErr(err, "get failed")
-		// Invalid id, or does not exist
-		return http.StatusNotFound, ""
-	}
-	oldEntity := obj.(*models.Subject)
-
-	entity.Id = oldEntity.Id
-	_, err = db.Update(&entity)
-	if err != nil {
-		checkErr(err, "update failed")
-		return http.StatusConflict, ""
-	}
-	return http.StatusOK, Must(enc.EncodeOne(entity))
-}
-
-func DeleteSubject(db gorp.SqlExecutor, parms martini.Params) (int, string) {
-	id, err := strconv.Atoi(parms["id"])
-	obj, _ := db.Get(models.Subject{}, id)
-	if err != nil || obj == nil {
-		checkErr(err, "get failed")
-		// Invalid id, or does not exist
-		return http.StatusNotFound, ""
-	}
-	entity := obj.(*models.Subject)
-	_, err = db.Delete(entity)
-	if err != nil {
-		checkErr(err, "delete failed")
-		return http.StatusConflict, ""
-	}
-	return http.StatusNoContent, ""
-}
-
-func GetRandomSubject(db gorp.SqlExecutor) *models.Subject {
-	var list_subjects []models.Subject
-	var subject models.Subject
-	r := rand.New(rand.NewSource(99))
-	_, err := db.Select(&list_subjects, "SELECT * FROM subjects ORDER BY id")
-	if err == nil {
-		total_subjects := len(list_subjects)
-		fmt.Printf(" O TOTAL %d", total_subjects)
-		var index = r.Intn(total_subjects)
-		if index < len(list_subjects) {
-			subject = list_subjects[index]
-		} else {
-			subject = list_subjects[0]
-		}
-
-	} else {
-		checkErr(err, "SELECT ERROR")
-		subject = models.Subject{0, "Um amigo acaba de lhe dar um toque", ""}
-	}
-
-	return &subject
 }
 
 func subjectsToIface(v []models.Subject) []interface{} {
