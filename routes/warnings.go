@@ -126,6 +126,12 @@ func GetWarning(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, st
 
 func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 
+	status := &models.Message{
+		Id: 200,
+		Name: "Broda Avisado(a)",
+		Lang_key: "br",
+	}
+
 	entity.Sent = false
 	entity.Created_by = "system"
 	entity.Created_date = models.JDate(time.Now())
@@ -137,12 +143,53 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 		return http.StatusConflict, ""
 	}
 	w.Header().Set("Location", fmt.Sprintf("/warnabroda/warnings/%d", entity.Id))
+	
+	
+
 	if entity.Id_contact_type == 1 {
 		go sendEmail(&entity, db)
 	} else if entity.Id_contact_type == 2 {
-		go sendSMS(&entity, db)
+		processSMS(&entity, db, status)
+		
 	}
-	return http.StatusCreated, Must(enc.EncodeOne(entity))
+
+	return http.StatusCreated, Must(enc.EncodeOne(status))
+}
+
+func processSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.Message){
+	if (smsSentToContact(warning,db)){
+		status.Id = 403
+		status.Name = "Este número já recebeu uma SMS hoje."
+		status.Lang_key = "br"
+	} else {
+		go sendSMS(warning, db)
+	}
+
+}
+
+func smsSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
+	
+	str_today := time.Now().Format("2006-01-02")
+
+	return_statement := false
+	var warnings []models.Warning
+
+	select_statement := " SELECT * FROM warnings "
+	select_statement += " WHERE Id_contact_type = 2 AND "
+	select_statement += " (Contact = '"+warning.Contact+"' OR Ip LIKE '%"+warning.Ip+"%' ) AND "
+	select_statement += " Created_date BETWEEN '"+str_today+" 00:00:00' AND '"+str_today+" 23:59:59' "
+
+	_, err := db.Select(&warnings, select_statement)
+	if err != nil {
+		checkErr(err, "Checking Contact failed")		
+	}
+
+	if (len(warnings) > 0){
+		return_statement = true;
+	}
+
+
+	return return_statement
 }
 
 func UpdateWarningSent(entity *models.Warning, db gorp.SqlExecutor) {
