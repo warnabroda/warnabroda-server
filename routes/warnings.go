@@ -96,9 +96,6 @@ func sendSMS(entity *models.Warning, db gorp.SqlExecutor){
     }
 
 
-	//?user=warnabroda&password=superwarnabroda951753&destinatario=4896662015&msg=WarnabrodaTest
-	//https://www.facilitamovel.com.br/api/simpleSend.ft?destinatario=4896662015&msg=Amigo%28a%29%2C+Voc%C3%AA+tem+sujeira+de+merda+grudada+no+sanit%C3%A1rio.+Avise+um+amigo+voc%C3%AA+tam%C3%A9m%3A+www.warnabroda.com&password=superwarnabroda951753&user=warnabroda
-
 }
 
 
@@ -157,9 +154,10 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 }
 
 func processSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.Message){
+	fmt.Println(status)
 	if (smsSentToContact(warning,db)){
 		status.Id = 403
-		status.Name = "Este número já recebeu uma SMS hoje."
+		status.Name = "Este número já recebeu um SMS hoje ou seu IP("+warning.Ip+") já enviou a cota maxima de SMS diário."
 		status.Lang_key = "br"
 	} else {
 		go sendSMS(warning, db)
@@ -177,14 +175,15 @@ func smsSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
 	select_statement := " SELECT * FROM warnings "
 	select_statement += " WHERE Id_contact_type = 2 AND "
 	select_statement += " (Contact = '"+warning.Contact+"' OR Ip LIKE '%"+warning.Ip+"%' ) AND "
-	select_statement += " Created_date BETWEEN '"+str_today+" 00:00:00' AND '"+str_today+" 23:59:59' "
+	select_statement += " Created_date BETWEEN '"+str_today+" 00:00:00' AND '"+str_today+" 23:59:59' AND "
+	select_statement += " Id <> " + strconv.FormatInt(warning.Id,10)
 
 	_, err := db.Select(&warnings, select_statement)
 	if err != nil {
 		checkErr(err, "Checking Contact failed")		
 	}
-
-	if (len(warnings) > 0){
+	fmt.Println(len(warnings))
+	if (len(warnings) > 0){		
 		return_statement = true;
 	}
 
