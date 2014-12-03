@@ -64,19 +64,18 @@ func sendSMS(entity *models.Warning, db gorp.SqlExecutor){
 	sms_message += "Você " + message.Name + ". "
 	sms_message += "Avise um amigo você também: www.warnabroda.com"
 	u, err := url.Parse("https://www.facilitamovel.com.br/api/simpleSend.ft?")
-	fmt.Println(u)
+	
 	if err != nil {
 		checkErr(err, "Ugly URL")
 	}
 	u.Scheme = "https"
 	u.Host = "www.facilitamovel.com.br"
 	q := u.Query()
-	q.Set("user", "user")//warnabroda
-	q.Set("password", "password")//superwarnabroda951753
+	q.Set("user", "warnabroda")//warnabroda
+	q.Set("password", "superwarnabroda951753")//superwarnabroda951753
 	q.Set("destinatario", entity.Contact)
 	q.Set("msg",  sms_message)
-	u.RawQuery = q.Encode()
-	fmt.Println(u.String())
+	u.RawQuery = q.Encode()	
 
 	res, err := http.Get(u.String())
     if err != nil {
@@ -88,11 +87,7 @@ func sendSMS(entity *models.Warning, db gorp.SqlExecutor){
         checkErr(err, "No response from SMS Sender")
     } else {
     	entity.Message = string(robots[:])
-    	UpdateWarningSent(entity, db)    	
-    	fmt.Printf("%s", robots)
-    	fmt.Println("#####")
-    	fmt.Println(entity)
-    	fmt.Println("#####")
+    	UpdateWarningSent(entity, db)    	    	
     }
 
 
@@ -131,8 +126,8 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 
 	entity.Sent = false
 	entity.Created_by = "system"
-	entity.Created_date = models.JDate(time.Now())
-	entity.Lang_key = "br"
+	entity.Created_date = models.JDate(time.Now().Local())
+	entity.Lang_key = "br"	
 
 	err := db.Insert(&entity)
 	if err != nil {
@@ -154,7 +149,7 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 }
 
 func processSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.Message){
-	fmt.Println(status)
+	
 	if (smsSentToContact(warning,db)){
 		status.Id = 403
 		status.Name = "Este número já recebeu um SMS hoje ou seu IP("+warning.Ip+") já enviou a cota maxima de SMS diário."
@@ -182,7 +177,7 @@ func smsSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
 	if err != nil {
 		checkErr(err, "Checking Contact failed")		
 	}
-	fmt.Println(len(warnings))
+	
 	if (len(warnings) > 0){		
 		return_statement = true;
 	}
