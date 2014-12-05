@@ -26,11 +26,11 @@ type Warning struct {
   
     Created_by string `json:"created_by"`
   
-    Created_date JDate `json:"created_date"`
+    Created_date string `json:"created_date"`
   
     Last_modified_by string `json:"last_modified_by"`
   
-    Last_modified_date JDate `json:"last_modified_date"`
+    Last_modified_date string `json:"last_modified_date"`
   
     Lang_key string `json:"lang_key"`
   

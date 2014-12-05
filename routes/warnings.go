@@ -50,7 +50,7 @@ func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {
 
 	//envio assincrono = true // envio sincrono = false
 	res, err := msg.Send(false)
-
+	fmt.Println(entity)
 	if res[0] != nil {
 		UpdateWarningSent(entity, db)
 	} else {
@@ -125,7 +125,7 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 
 	entity.Sent = false
 	entity.Created_by = "system"
-	entity.Created_date = models.JDate(time.Now().Local())
+	entity.Created_date = time.Now().String()
 	entity.Lang_key = "br"
 
 	err := db.Insert(&entity)
@@ -136,13 +136,24 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 	w.Header().Set("Location", fmt.Sprintf("/warnabroda/warnings/%d", entity.Id))
 
 	if entity.Id_contact_type == 1 {
-		go sendEmail(&entity, db)
+		processEmail(&entity, db, status)
 	} else if entity.Id_contact_type == 2 {
 		processSMS(&entity, db, status)
 
 	}
 
 	return http.StatusCreated, Must(enc.EncodeOne(status))
+}
+
+func processEmail(warning *models.Warning, db gorp.SqlExecutor, status *models.Message){
+	fmt.Println(warning)
+	if emailSentToContact(warning, db) {
+		status.Id = 403
+		status.Name = "O Seu amigo já foi avisado sobre isso, muito obrigado."
+		status.Lang_key = "br"
+	} else {
+		go sendEmail(warning, db)
+	}
 }
 
 func processSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.Message) {
@@ -157,6 +168,33 @@ func processSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.Mes
 
 }
 
+func emailSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
+	str_today 			:= time.Now().Format("2006-01-02")		
+	int_hour_now 		:= time.Now().Hour()
+	int_minute_now 		:= time.Now().Minute()
+	return_statement 	:= false
+	var warnings []models.Warning
+	fmt.Println(warning)
+	select_statement := " SELECT * FROM warnings "
+	select_statement += " WHERE Id_contact_type = 1 AND Sent = 1 AND "
+	select_statement += " Contact = '" + warning.Contact + "' AND "
+	select_statement += " Created_date BETWEEN '" + str_today + " "+strconv.Itoa(int_hour_now-1)+":"+strconv.Itoa(int_minute_now)+":00' AND '" + str_today + " "+strconv.Itoa(int_hour_now+1)+":"+strconv.Itoa(int_minute_now)+":00' AND "
+	select_statement += " Id <> " + strconv.FormatInt(warning.Id, 10)
+
+	_, err := db.Select(&warnings, select_statement)
+	if err != nil {
+		checkErr(err, "Checking Contact failed")
+	}
+
+	if len(warnings) > 0 {
+		return_statement = true
+	}
+
+	return return_statement
+}
+
+
+
 func smsSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
 
 	str_today := time.Now().Format("2006-01-02")
@@ -165,7 +203,7 @@ func smsSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
 	var warnings []models.Warning
 
 	select_statement := " SELECT * FROM warnings "
-	select_statement += " WHERE Id_contact_type = 2 AND "
+	select_statement += " WHERE Id_contact_type = 2 AND Sent = 1 "
 	select_statement += " (Contact = '" + warning.Contact + "' OR Ip LIKE '%" + warning.Ip + "%' ) AND "
 	select_statement += " Created_date BETWEEN '" + str_today + " 00:00:00' AND '" + str_today + " 23:59:59' AND "
 	select_statement += " Id <> " + strconv.FormatInt(warning.Id, 10)
@@ -184,7 +222,7 @@ func smsSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
 
 func UpdateWarningSent(entity *models.Warning, db gorp.SqlExecutor) {
 	entity.Sent = true
-	entity.Last_modified_date = models.JDate(time.Now())
+	entity.Last_modified_date = time.Now().String()
 	_, err := db.Update(entity)
 	if err != nil {
 		checkErr(err, "update failed")
