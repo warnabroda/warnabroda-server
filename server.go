@@ -43,6 +43,7 @@ func init() {
 	// r.Put(`/warnabroda/subjects/:id`, binding.Json(models.Subject{}), routes.UpdateSubject)
 	// r.Delete(`/warnabroda/subjects/:id`, routes.DeleteSubject)
 
+	r.Get(`/warnabroda/count-warnings`, routes.CountWarnings)
 	// r.Get(`/warnabroda/warnings`, routes.GetWarnings)
 	// r.Get(`/warnabroda/warnings/:id`, routes.GetWarning)
 	r.Post(`/warnabroda/warnings`, binding.Json(models.Warning{}), routes.AddWarning)

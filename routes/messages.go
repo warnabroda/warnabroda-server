@@ -11,7 +11,7 @@ import (
 
 func GetMessages(enc Encoder, db gorp.SqlExecutor) (int, string) {
 	var messages []models.Message
-	_, err := db.Select(&messages, "select * from messages order by id")
+	_, err := db.Select(&messages, "SELECT * FROM messages ORDER BY name")
 	if err != nil {
 		checkErr(err, "select failed")
 		return http.StatusInternalServerError, ""

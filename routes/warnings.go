@@ -59,6 +59,41 @@ func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {
 
 }
 
+//http://www.mpgateway.com/v_2_00/smspush/enviasms.aspx?CREDENCIAL=9A5A910B8B73AD14E5899D062B2A2AC2B065BD1B&PRINCIPAL_USER=WARNABRODA&AUX_USER=WAB&MOBILE=554896662015&SEND_PROJECT=N&MESSAGE=20Teste%20usando%20o%20mobile%20pronto2
+func sendSMSMobilePronto(entity *models.Warning, db gorp.SqlExecutor){
+	message := SelectMessage(db, entity.Id_message)
+	sms_message := "Ola Amigo(a), "
+	sms_message += "Você " + message.Name + ". "
+	sms_message += "Avise um amigo você também: www.warnabroda.com"
+	u, err := url.Parse("http://www.mpgateway.com/v_2_00/smsfollow/smsfollow.aspx?")
+
+	if err != nil {
+		checkErr(err, "Ugly URL")
+	}
+	u.Scheme = "http"
+	u.Host = "www.mpgateway.com"
+	q := u.Query()
+	q.Set("CREDENCIAL", os.Getenv("WARNACREDENCIAL"))
+	q.Set("PRINCIPAL_USER", os.Getenv("WARNAPROJECT"))
+	q.Set("AUX_USER", "WAB")
+	q.Set("MOBILE", "55"+entity.Contact)
+	q.Set("SEND_PROJECT", "N")
+	q.Set("MESSAGE", sms_message)
+	u.RawQuery = q.Encode()
+
+	res, err := http.Get(u.String())
+	if err != nil {
+		checkErr(err, "SMS Not Sent")
+	}
+	robots, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		checkErr(err, "No response from SMS Sender")
+	} else {
+		entity.Message = string(robots[:])
+		UpdateWarningSent(entity, db)
+	}
+}
 func sendSMS(entity *models.Warning, db gorp.SqlExecutor) {
 	message := SelectMessage(db, entity.Id_message)
 	sms_message := "Ola Amigo(a), "
@@ -101,6 +136,16 @@ func GetWarnings(enc Encoder, db gorp.SqlExecutor) (int, string) {
 		return http.StatusInternalServerError, ""
 	}
 	return http.StatusOK, Must(enc.Encode(warningsToIface(warnings)...))
+}
+
+func CountWarnings(enc Encoder, db gorp.SqlExecutor) (int, string) {
+	
+	total, err := db.SelectInt("SELECT COUNT(*) AS total FROM warnings WHERE Sent=true")
+	if err != nil {
+		checkErr(err, "COUNT ERROR")
+		return http.StatusInternalServerError, ""
+	}
+	return http.StatusOK, strconv.FormatInt(total, 10)
 }
 
 func GetWarning(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
@@ -149,7 +194,7 @@ func processEmail(warning *models.Warning, db gorp.SqlExecutor, status *models.M
 	fmt.Println(warning)
 	if emailSentToContact(warning, db) {
 		status.Id = 403
-		status.Name = "O Seu amigo já foi avisado sobre isso, muito obrigado."
+		status.Name = "Broda já foi avisado(a) há instantes atrás. Muito Obrigado."
 		status.Lang_key = "br"
 	} else {
 		go sendEmail(warning, db)
@@ -163,23 +208,28 @@ func processSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.Mes
 		status.Name = "Este número já recebeu um SMS hoje ou seu IP(" + warning.Ip + ") já enviou a cota maxima de SMS diário."
 		status.Lang_key = "br"
 	} else {
-		go sendSMS(warning, db)
+		go sendSMSMobilePronto(warning, db)
 	}
 
 }
 
 func emailSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
-	str_today 			:= time.Now().Format("2006-01-02")		
-	int_hour_now 		:= time.Now().Hour()
-	int_minute_now 		:= time.Now().Minute()
+	
+	now_lower := time.Now().Add(-2*time.Hour)
+	now_upper := time.Now().Add(2*time.Hour)
+
+	str_now_lower			:= now_lower.Format("2006-01-02 15:04:05")			
+	str_now_upper			:= now_upper.Format("2006-01-02 15:04:05")	
+	
 	return_statement 	:= false
 	var warnings []models.Warning
-	fmt.Println(warning)
+	
 	select_statement := " SELECT * FROM warnings "
 	select_statement += " WHERE Id_contact_type = 1 AND Sent = 1 AND "
 	select_statement += " Contact = '" + warning.Contact + "' AND "
-	select_statement += " Created_date BETWEEN '" + str_today + " "+strconv.Itoa(int_hour_now-1)+":"+strconv.Itoa(int_minute_now)+":00' AND '" + str_today + " "+strconv.Itoa(int_hour_now+1)+":"+strconv.Itoa(int_minute_now)+":00' AND "
+	select_statement += " Created_date BETWEEN '" + str_now_lower +"' AND '" + str_now_upper +"' AND "
 	select_statement += " Id <> " + strconv.FormatInt(warning.Id, 10)
+	fmt.Println(select_statement)
 
 	_, err := db.Select(&warnings, select_statement)
 	if err != nil {
@@ -203,7 +253,7 @@ func smsSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
 	var warnings []models.Warning
 
 	select_statement := " SELECT * FROM warnings "
-	select_statement += " WHERE Id_contact_type = 2 AND Sent = 1 "
+	select_statement += " WHERE Id_contact_type = 2 AND Sent = 1 AND "
 	select_statement += " (Contact = '" + warning.Contact + "' OR Ip LIKE '%" + warning.Ip + "%' ) AND "
 	select_statement += " Created_date BETWEEN '" + str_today + " 00:00:00' AND '" + str_today + " 23:59:59' AND "
 	select_statement += " Id <> " + strconv.FormatInt(warning.Id, 10)
