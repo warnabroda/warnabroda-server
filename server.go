@@ -3,7 +3,6 @@ package main
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
 	"bitbucket.org/hbtsmith/warnabrodagomartini/routes"
-	//"log"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/binding"
@@ -49,6 +48,12 @@ func init() {
 	r.Post(`/warnabroda/warnings`, binding.Json(models.Warning{}), routes.AddWarning)
 	// r.Put(`/warnabroda/warnings/:id`, binding.Json(models.Warning{}), routes.UpdateWarning)
 	// r.Delete(`/warnabroda/warnings/:id`, routes.DeleteWarning)
+
+
+	// r.Get(`/warnabroda/ignore_list/:id`, routes.GetIgnoreList)
+	r.Post(`/warnabroda/ignore_list`, binding.Json(models.Ignore_List{}), routes.AddIgnoreList)
+	// r.Put(`/warnabroda/ignore_list/:id`, binding.Json(models.Subject{}), routes.UpdateIgnoreList)
+	// r.Delete(`/warnabroda/ignore_list/:id`, routes.DeleteIgnoreList)
 
 	// Inject database
 	m.MapTo(models.Dbm, (*gorp.SqlExecutor)(nil))

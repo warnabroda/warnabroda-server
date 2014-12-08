@@ -91,6 +91,33 @@ INSERT INTO `subjects` VALUES (1,'Pô parceiro(a)','br'),(2,'Um amigo(a) pediu p
 UNLOCK TABLES;
 
 --
+-- Table structure for table `ignore_list`
+--
+
+DROP TABLE IF EXISTS `ignore_list`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+
+CREATE TABLE `ignore_list` (
+  `Id` int(11) NOT NULL AUTO_INCREMENT,
+  `Contact` varchar(255) DEFAULT NULL,
+  `Ip` varchar(255) DEFAULT NULL,
+  `Browser` varchar(255) DEFAULT NULL,
+  `Operating_system` varchar(255) DEFAULT NULL,
+  `Device` varchar(255) DEFAULT NULL,
+  `Raw` varchar(255) DEFAULT NULL,
+  `Created_by` varchar(255) DEFAULT NULL,
+  `Created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`Id`),
+  UNIQUE KEY `Contact_UNIQUE` (`Contact`)
+) ENGINE=InnoDB AUTO_INCREMENT=170 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ignore_list`
+--
+
+--
 -- Table structure for table `warnings`
 --
 

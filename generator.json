@@ -205,6 +205,82 @@
 					"required": false
 				}
 			]
+		},
+		{
+			"name": "ignore_list",
+			"attrs": [				
+				{
+					"attrName": "contact",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "ip",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "browser",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "operating_system",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "device",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "raw",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "created_by",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "created_date",
+					"attrType": "Date",
+					"attrImplType": "JDate",
+					"dateConstraint": "",
+					"enumValues": [],
+					"required": true
+				}
+			]
 		}
 	],
 	"resources": []
