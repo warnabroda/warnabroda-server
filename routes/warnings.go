@@ -70,9 +70,9 @@ func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {
 
 func sendSMSMobilePronto(entity *models.Warning, db gorp.SqlExecutor){
 	message := SelectMessage(db, entity.Id_message)
-	sms_message := "Ola Amigo(a), "
+	sms_message := "Ola Broda, "
 	sms_message += "Você " + message.Name + ". "
-	sms_message += "Avise um amigo você também: www.warnabroda.com"
+	sms_message += "Warn A Broda você também: www.warnabroda.com"
 	u, err := url.Parse("http://www.mpgateway.com/v_2_00/smsfollow/smsfollow.aspx?")
 
 	if err != nil {
