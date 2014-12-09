@@ -15,12 +15,25 @@ import (
 	"time"
 )
 
-var wab_root = os.Getenv("WARNAROOT")
+var (
+	wab_root = os.Getenv("WARNAROOT")
+	mandrill_key = os.Getenv("MANDRILL_KEY")
+	mail_from = os.Getenv("WARNAEMAIL")
+	wab_credencial = os.Getenv("WARNACREDENCIAL")
+	wab_project = os.Getenv("WARNAPROJECT")
+	sms_facilita_user = os.Getenv("WARNASMS_USER")
+	sms_facilita_pass = os.Getenv("WARNASMS_PASS")
+)
+
+const (
+	dbFormat   = "2006-01-02 15:04:05"
+	jsonFormat = "2006-01-02"
+)
 
 //https://www.facilitamovel.com.br/api/simpleSend.ft?user=warnabroda&password=superwarnabroda951753&destinatario=4896662015&msg=WarnabrodaTest
 func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {
 
-	mandrill.Key = os.Getenv("MANDRILL_KEY")
+	mandrill.Key = mandrill_key
 	// you can test your API key with Ping
 	err := mandrill.Ping()
 	// everything is OK if err is nil
@@ -45,7 +58,7 @@ func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {
 	msg.HTML = email_content
 	// msg.Text = "plain text content" // optional
 	msg.Subject = subject.Name
-	msg.FromEmail = os.Getenv("WARNAEMAIL")
+	msg.FromEmail = mail_from
 	msg.FromName = "Warn A Broda: Dá um toque"
 
 	//envio assincrono = true // envio sincrono = false
@@ -73,8 +86,8 @@ func sendSMSMobilePronto(entity *models.Warning, db gorp.SqlExecutor){
 	u.Scheme = "http"
 	u.Host = "www.mpgateway.com"
 	q := u.Query()
-	q.Set("CREDENCIAL", os.Getenv("WARNACREDENCIAL"))
-	q.Set("PRINCIPAL_USER", os.Getenv("WARNAPROJECT"))
+	q.Set("CREDENCIAL", wab_credencial)
+	q.Set("PRINCIPAL_USER", wab_project)
 	q.Set("AUX_USER", "WAB")
 	q.Set("MOBILE", "55"+entity.Contact)
 	q.Set("SEND_PROJECT", "N")
@@ -107,8 +120,8 @@ func sendSMS(entity *models.Warning, db gorp.SqlExecutor) {
 	u.Scheme = "https"
 	u.Host = "www.facilitamovel.com.br"
 	q := u.Query()
-	q.Set("user", os.Getenv("WARNASMS_USER"))
-	q.Set("password", os.Getenv("WARNASMS_PASS"))
+	q.Set("user", sms_facilita_user)
+	q.Set("password", sms_facilita_pass)
 	q.Set("destinatario", entity.Contact)
 	q.Set("msg", sms_message)
 	u.RawQuery = q.Encode()
@@ -218,8 +231,8 @@ func emailSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
 	now_lower := time.Now().Add(-2*time.Hour)
 	now_upper := time.Now().Add(2*time.Hour)
 
-	str_now_lower			:= now_lower.Format("2006-01-02 15:04:05")			
-	str_now_upper			:= now_upper.Format("2006-01-02 15:04:05")	
+	str_now_lower			:= now_lower.Format(dbFormat)			
+	str_now_upper			:= now_upper.Format(dbFormat)	
 	
 	return_statement 	:= false
 	var warnings []models.Warning
@@ -247,7 +260,7 @@ func emailSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
 
 func smsSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
 
-	str_today := time.Now().Format("2006-01-02")
+	str_today := time.Now().Format(jsonFormat)
 
 	return_statement := false
 	var warnings []models.Warning

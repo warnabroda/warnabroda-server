@@ -51,7 +51,7 @@ func init() {
 
 
 	// r.Get(`/warnabroda/ignore_list/:id`, routes.GetIgnoreList)
-	r.Post(`/warnabroda/ignore_list`, binding.Json(models.Ignore_List{}), routes.AddIgnoreList)
+	r.Post(`/warnabroda/ignore-list`, binding.Json(models.Ignore_List{}), routes.AddIgnoreList)
 	// r.Put(`/warnabroda/ignore_list/:id`, binding.Json(models.Subject{}), routes.UpdateIgnoreList)
 	// r.Delete(`/warnabroda/ignore_list/:id`, routes.DeleteIgnoreList)
 

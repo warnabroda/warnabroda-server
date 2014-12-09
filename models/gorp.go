@@ -44,6 +44,8 @@ func init() {
 
 	Dbm.AddTableWithName(Warning{}, "warnings").SetKeys(true, "Id")
 
+	Dbm.AddTableWithName(Ignore_List{}, "ignore_list").SetKeys(true, "Id")
+
 	//Dbm.TraceOn("[gorp]", r.INFO)
 	err = Dbm.CreateTablesIfNotExists()
 	checkErr(err, "create tables failed")

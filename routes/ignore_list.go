@@ -7,6 +7,7 @@ import (
 	"github.com/go-martini/martini"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
@@ -22,9 +23,8 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 	entity.Created_date = time.Now().String()	
 
 	err := db.Insert(&entity)
-	if err != nil {
-		//checkErr(err, "insert failed")
-		status := &models.Message{
+	if err != nil {		
+		status = &models.Message{
 			Id:       403,
 			Name:     "Contato Já estava na Lista de Ignorados!",
 			Lang_key: "br",
