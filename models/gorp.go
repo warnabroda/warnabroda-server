@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	dbFormat   = "2006-01-02 15:04:05"
-	jsonFormat = "2006-01-02"
+	DbFormat   = "2006-01-02 15:04:05"
+	JsonFormat = "2006-01-02"
 )
 
 var (
@@ -53,7 +53,7 @@ func init() {
 }
 
 func (d JDate) MarshalJSON() ([]byte, error) {
-	return json.Marshal((*time.Time)(&d).Format(jsonFormat))
+	return json.Marshal((*time.Time)(&d).Format(JsonFormat))
 }
 
 func (d *JDate) UnmarshalJSON(data []byte) error {
@@ -61,7 +61,7 @@ func (d *JDate) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	t, err := time.Parse(jsonFormat, s)
+	t, err := time.Parse(JsonFormat, s)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func (me CustomTypeConverter) FromDb(target interface{}) (gorp.CustomScanner, bo
 			if !ok {
 				return errors.New(fmt.Sprint("FromDb: Unable to convert target to *JDate: ", reflect.TypeOf(target)))
 			}
-			t, _ := time.Parse(dbFormat, *s)
+			t, _ := time.Parse(DbFormat, *s)
 			*st = JDate(t)
 			return nil
 		}

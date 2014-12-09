@@ -50,3 +50,15 @@ func DeleteIgnoreList(db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	}
 	return http.StatusNoContent, ""
 }
+
+
+func InIgnoreList(db gorp.SqlExecutor, contact string) bool {
+
+	exists, err := db.SelectInt("SELECT COUNT(*) FROM ignore_list WHERE Contact=?", contact)
+
+	if err != nil {
+		checkErr(err, "select failed")
+	}
+
+	return exists > 0
+}
