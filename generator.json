@@ -275,11 +275,38 @@
 				{
 					"attrName": "created_date",
 					"attrType": "Date",
-					"attrImplType": "JDate",
+					"attrImplType": "string",
 					"dateConstraint": "",
 					"enumValues": [],
 					"required": true
+				},
+				{
+					"attrName": "last_modified_date",
+					"attrType": "Date",
+					"attrImplType": "string",
+					"dateConstraint": "",
+					"enumValues": [],
+					"required": false
+				},
+				{
+					"attrName": "confirmed",
+					"attrType": "Boolean",
+					"attrImplType": "bool",
+					"dateConstraint": "",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "confirmation_code",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "",
+					"enumValues": [],
+					"required": true
 				}
+
+				
 			]
 		}
 	],

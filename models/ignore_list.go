@@ -19,5 +19,11 @@ type Ignore_List struct {
     Created_by string `json:"created_by"`
   
     Created_date string `json:"created_date"`
+
+    Last_modified_date string `json:"last_modified_date"`
+
+    Confirmed bool `json:"confirmed"`
+
+    Confirmation_code string `json:"confirmation_code"`
     
 }

@@ -2,35 +2,90 @@ package routes
 
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"fmt"
+	// "fmt"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"net/http"
 	"strconv"
 	"time"
+	"math/rand"
+	"strings"
 )
+
+func randomString(l int ) string {
+    bytes := make([]byte, l)
+    for i:=0 ; i<l ; i++ {
+        bytes[i] = byte(randInt(65,90))
+    }
+    return string(bytes)
+}
+
+func randInt(min int, max int) int {
+    return min + rand.Intn(max-min)
+}
+
+func GetIgnoreContact(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
+	
+	id, err := strconv.Atoi(parms["id"])
+
+	var ignored models.Ignore_List
+	err = db.SelectOne(&ignored, "SELECT * FROM ignore_list WHERE confirmation_code=?", id)
+	if err != nil {
+		checkErr(err, "select failed")
+		return http.StatusInternalServerError, ""
+	}
+
+	UpdateIgnoreList(&ignored, db)
+
+	
+	return http.StatusOK, Must(enc.EncodeOne(ignored))
+}
+
+func UpdateIgnoreList(entity *models.Ignore_List, db gorp.SqlExecutor) {
+	entity.Confirmed = true
+	entity.Last_modified_date = time.Now().String()
+	_, err := db.Update(entity)
+	if err != nil {
+		checkErr(err, "update failed")
+	}
+}
+
 
 func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 
 	
 	status := &models.Message{
 		Id:       200,
-		Name:     "Contato Adicionado à Lista de Ignorados!",
+		Name:     "Favor confirmar bloqueio de contato",
 		Lang_key: "br",
 	}
 
-	entity.Created_by = "user"
-	entity.Created_date = time.Now().String()	
-
-	err := db.Insert(&entity)
-	if err != nil {		
+	if InIgnoreList(db, entity.Contact){
 		status = &models.Message{
 			Id:       403,
 			Name:     "Contato Já estava na Lista de Ignorados!",
 			Lang_key: "br",
+		}		
+	} else {
+	    rand.Seed(time.Now().UTC().UnixNano())   
+		entity.Created_by 			= "user"
+		entity.Created_date 		= time.Now().String()	
+		entity.Confirmed 			= false;
+		entity.Confirmation_code 	= randomString(6)
+
+		if strings.Contains(entity.Contact,"@"){
+			//TODO: Send confirmation Email
+		} else {
+			//TODO: Send confirmation SMS
+		}
+
+		err := db.Insert(&entity)
+		if err != nil {		
+			checkErr(err, "INSERT IGNORE FAIL")
 		}
 	}
-	w.Header().Set("Location", fmt.Sprintf("/warnabroda/ignore_list/%d", entity.Id))
+
+	//w.Header().Set("Location", fmt.Sprintf("/warnabroda/ignore-list/%d", entity.Id))
 	return http.StatusCreated, Must(enc.EncodeOne(status))
 }
 
@@ -54,7 +109,7 @@ func DeleteIgnoreList(db gorp.SqlExecutor, parms martini.Params) (int, string) {
 
 func InIgnoreList(db gorp.SqlExecutor, contact string) bool {
 
-	exists, err := db.SelectInt("SELECT COUNT(*) FROM ignore_list WHERE Contact=?", contact)
+	exists, err := db.SelectInt("SELECT COUNT(*) FROM ignore_list WHERE Contact=? AND confirmed=true", contact)
 
 	if err != nil {
 		checkErr(err, "select failed")
