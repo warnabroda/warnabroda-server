@@ -2,7 +2,7 @@ package routes
 
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	// "fmt"
+	"os"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"net/http"
@@ -36,23 +36,42 @@ func GetIgnoreContact(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (i
 	}
 
 	UpdateIgnoreList(&ignored, db)
-
 	
 	return http.StatusOK, Must(enc.EncodeOne(ignored))
 }
 
-func UpdateIgnoreList(entity *models.Ignore_List, db gorp.SqlExecutor) {
-	entity.Confirmed = true
-	entity.Last_modified_date = time.Now().String()
-	_, err := db.Update(entity)
-	if err != nil {
-		checkErr(err, "update failed")
+func sendEmail(entity *models.Ignore_List, db gorp.SqlExecutor){
+
+}
+
+func sendSMS(entity *models.Ignore_List, db gorp.SqlExecutor){
+	
+	sms_message := "Pro Warn A Broda lhe ignorar efetivamente, "
+	sms_message += "por favor entre em: "
+	sms_message += "www.warnabroda.com/#/ignoreme "
+	sms_message += "e informe o codigo: "+entity.Confirmation_code
+
+	sms := &models.SMS {
+		CredencialKey: os.Getenv("WARNACREDENCIAL"),  
+	    Content: sms_message,
+	    URLPath: "http://www.mpgateway.com/v_2_00/smsfollow/smsfollow.aspx?",	  
+	    Scheme: "http",	  
+	    Host: "www.mpgateway.com",	  
+	    Project: os.Getenv("WARNAPROJECT"),	  
+	    AuxUser: "WAB",	      
+	    MobileNumber: "55"+entity.Contact,
+	    SendProject:"N",	    
+	}
+
+	sent, smsResponse := SendSMS(sms, db)
+
+	if  sent {		
+		entity.Message = smsResponse	
+		UpdateIgnoreList(entity, db)	
 	}
 }
 
-
 func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
-
 	
 	status := &models.Message{
 		Id:       200,
@@ -74,9 +93,11 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 		entity.Confirmation_code 	= randomString(6)
 
 		if strings.Contains(entity.Contact,"@"){
-			//TODO: Send confirmation Email
+			status.Name += " via e-mail."			
+			go sendEmail()
 		} else {
-			//TODO: Send confirmation SMS
+			status.Name += " via SMS."
+			go sendSMS(entity, db)
 		}
 
 		err := db.Insert(&entity)
@@ -106,6 +127,14 @@ func DeleteIgnoreList(db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	return http.StatusNoContent, ""
 }
 
+func UpdateIgnoreList(entity *models.Ignore_List, db gorp.SqlExecutor) {
+	entity.Confirmed = true
+	entity.Last_modified_date = time.Now().String()
+	_, err := db.Update(entity)
+	if err != nil {
+		checkErr(err, "update failed")
+	}
+}
 
 func InIgnoreList(db gorp.SqlExecutor, contact string) bool {
 
