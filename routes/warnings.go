@@ -134,7 +134,9 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 	}
 	w.Header().Set("Location", fmt.Sprintf("/warnabroda/warnings/%d", entity.Id))
 
-	if (InIgnoreList(db, entity.Contact)){
+	ingnored := InIgnoreList(db, entity.Contact)
+
+	if ingnored!= nil && ingnored.Confirmed {
 		status = &models.Message{
 			Id:       403,
 			Name:     "Este Broda está na Ignore List, pois não deseja receber avisos do Warn A Broda, Sorry ae.",

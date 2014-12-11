@@ -54,7 +54,7 @@ func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	
 	var email_content string
 	email_content = strings.Replace(template_email_string, "{{code}}", entity.Confirmation_code, 1)
-	email_content = strings.Replace(template_email_string, "{{url}}", ignore_url, 1)
+	email_content = strings.Replace(email_content, "{{url}}", ignore_url, 2)
 
 	email := &models.Email{
 		TemplatePath: wab_email_template,	
@@ -104,35 +104,48 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 		Id:       200,
 		Name:     "Favor confirmar bloqueio de contato",
 		Lang_key: "br",
-	}
+	}	
 
-	if InIgnoreList(db, entity.Contact){
+	ingnored := InIgnoreList(db, entity.Contact)
+
+	if ingnored!=nil && ingnored.Confirmed {
+
 		status = &models.Message{
 			Id:       403,
 			Name:     "Contato Já estava na Lista de Ignorados!",
 			Lang_key: "br",
-		}		
-	} else {
-	    rand.Seed(time.Now().UTC().UnixNano())   
-		entity.Created_by 			= "user"
-		entity.Created_date 		= time.Now().String()	
-		entity.Confirmed 			= false;
-		entity.Confirmation_code 	= randomString(6)
-
-		if strings.Contains(entity.Contact,"@"){
-			status.Name += " via e-mail."			
-			go sendEmailIgnoreme(&entity, db)
-		} else {
-			status.Name += " via SMS."
-			go sendSMSIgnoreme(&entity, db)
 		}
 
-		err := db.Insert(&entity)
-		if err != nil {		
-			checkErr(err, "INSERT IGNORE FAIL")
+		return http.StatusCreated, Must(enc.EncodeOne(status))
+
+	} else if ingnored!=nil {
+		status = &models.Message{
+			Id:       403,
+			Name:     "Solicitações de Ignore-me devem ser confirmadas entre as 00:00 e as 23:59 do dia em que foram solicitadas!",
+			Lang_key: "br",
 		}
+
+		return http.StatusCreated, Must(enc.EncodeOne(status))
 	}
+	
+    rand.Seed(time.Now().UTC().UnixNano())   
+	entity.Created_by 			= "user"
+	entity.Created_date 		= time.Now().String()	
+	entity.Confirmed 			= false;
+	entity.Confirmation_code 	= randomString(6)
 
+	if strings.Contains(entity.Contact,"@"){
+		status.Name += " via e-mail."			
+		go sendEmailIgnoreme(&entity, db)
+	} else {
+		status.Name += " via SMS."
+		go sendSMSIgnoreme(&entity, db)
+	}		
+
+	errIns := db.Insert(&entity)
+	checkErr(errIns, "INSERT IGNORE FAIL")
+	
+		
 	//w.Header().Set("Location", fmt.Sprintf("/warnabroda/ignore-list/%d", entity.Id))
 	return http.StatusCreated, Must(enc.EncodeOne(status))
 }
@@ -163,13 +176,33 @@ func UpdateIgnoreList(entity *models.Ignore_List, db gorp.SqlExecutor) {
 	}
 }
 
-func InIgnoreList(db gorp.SqlExecutor, contact string) bool {
+func InIgnoreList(db gorp.SqlExecutor, contact string) *models.Ignore_List {	
 
-	exists, err := db.SelectInt("SELECT COUNT(*) FROM ignore_list WHERE Contact=? AND confirmed=true", contact)
+	ignored := models.Ignore_List{}
 
-	if err != nil {
-		checkErr(err, "select failed")
-	}
+	err := db.SelectOne(&ignored, "SELECT * FROM ignore_list WHERE Contact= :contact ",  
+		map[string]interface{}{
+	  		"contact": contact, 	  		
+		})
+	checkErr(err, "select failed")
+	
+
+	return &ignored
+}
+
+func IsIgnoreRequestUnconfirmedSentToday(db gorp.SqlExecutor, contact string) bool {	
+
+	str_today 	:= time.Now().Format(models.JsonFormat)
+
+	select_stmt := "SELECT COUNT(*) FROM ignore_list "
+	select_stmt += "WHERE Contact= ? AND confirmed = false "
+	select_stmt += " Created_date BETWEEN '" + str_today + " 00:00:00' AND '" + str_today + " 23:59:59' "
+
+	exists, err := db.SelectInt(select_stmt, contact)
+	checkErr(err, "select failed")
+	
 
 	return exists > 0
 }
+
+//TODO: EXPIRAR A REQUISICAO DIARIAMENTE E REMOVER DO BANCO
