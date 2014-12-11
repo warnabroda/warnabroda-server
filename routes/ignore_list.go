@@ -40,11 +40,11 @@ func GetIgnoreContact(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (i
 	return http.StatusOK, Must(enc.EncodeOne(ignored))
 }
 
-func sendEmail(entity *models.Ignore_List, db gorp.SqlExecutor){
+func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 
 }
 
-func sendSMS(entity *models.Ignore_List, db gorp.SqlExecutor){
+func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	
 	sms_message := "Pro Warn A Broda lhe ignorar efetivamente, "
 	sms_message += "por favor entre em: "
@@ -63,10 +63,10 @@ func sendSMS(entity *models.Ignore_List, db gorp.SqlExecutor){
 	    SendProject:"N",	    
 	}
 
-	sent, smsResponse := SendSMS(sms, db)
+	sent, response := SendSMS(sms, db)
 
 	if  sent {		
-		entity.Message = smsResponse	
+		entity.Message = response
 		UpdateIgnoreList(entity, db)	
 	}
 }
@@ -94,10 +94,10 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 
 		if strings.Contains(entity.Contact,"@"){
 			status.Name += " via e-mail."			
-			go sendEmail()
+			go sendEmailIgnoreme(&entity, db)
 		} else {
 			status.Name += " via SMS."
-			go sendSMS(entity, db)
+			go sendSMSIgnoreme(&entity, db)
 		}
 
 		err := db.Insert(&entity)

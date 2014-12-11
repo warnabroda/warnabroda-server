@@ -25,5 +25,7 @@ type Ignore_List struct {
     Confirmed bool `json:"confirmed"`
 
     Confirmation_code string `json:"confirmation_code"`
+
+    Message string `json:"message"`
     
 }

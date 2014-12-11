@@ -17,9 +17,10 @@ var (
 	wab_root 			= os.Getenv("WARNAROOT")		
 )
 
-func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {	
+func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {	
 
 	//reads the e-mail template from a local file
+	wab_email_template := wab_root + "/models/warning.html"
 	template_byte, err := ioutil.ReadFile(wab_email_template)
 	checkErr(err, "File Opening ERROR")
 	template_email_string := string(template_byte[:])
@@ -30,7 +31,7 @@ func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {
 	email_content = strings.Replace(template_email_string, "{{warning}}", message.Name, 1)
 
 	email := &models.Email{
-		TemplatePath: wab_root + "/models/warning.html",	
+		TemplatePath: wab_email_template,	
 		Content: email_content, 	
 		Subject: subject.Name,		
 		ToAddress: entity.Contact,
@@ -49,7 +50,7 @@ func sendEmail(entity *models.Warning, db gorp.SqlExecutor) {
 
 }
 
-func sendSMS(entity *models.Warning, db gorp.SqlExecutor){
+func sendSMSWarn(entity *models.Warning, db gorp.SqlExecutor){
 
 	message := SelectMessage(db, entity.Id_message)
 	sms_message := "Ola Broda, "
@@ -68,8 +69,10 @@ func sendSMS(entity *models.Warning, db gorp.SqlExecutor){
 	    SendProject:"N",	    
 	}
 
-	if SendSMS(sms, db) {
-		entity.Message = string(robots[:])
+	sent, response := SendSMS(sms, db)
+
+	if  sent {
+		entity.Message = response
 		UpdateWarningSent(entity, db)
 	}
 }
@@ -156,7 +159,7 @@ func processEmail(warning *models.Warning, db gorp.SqlExecutor, status *models.M
 		status.Name = "Broda já foi avisado(a) há instantes atrás. Muito Obrigado."
 		status.Lang_key = "br"
 	} else {
-		go sendEmail(warning, db)
+		go sendEmailWarn(warning, db)
 	}
 }
 
@@ -167,7 +170,7 @@ func processSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.Mes
 		status.Name = "Este número já recebeu um SMS hoje ou seu IP(" + warning.Ip + ") já enviou a cota maxima de SMS diário."
 		status.Lang_key = "br"
 	} else {
-		go sendSMS(warning, db)
+		go sendSMSWarn(warning, db)
 	}
 
 }
