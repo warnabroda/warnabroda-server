@@ -10,6 +10,11 @@ import (
 	"time"
 	"math/rand"
 	"strings"
+	"io/ioutil"
+)
+
+const (
+	ignore_url = "www.warnabroda.com/#/ignoreme"
 )
 
 func randomString(l int ) string {
@@ -41,7 +46,29 @@ func GetIgnoreContact(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (i
 }
 
 func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
+	//reads the e-mail template from a local file
+	wab_email_template := wab_root + "/models/ignoreme.html"
+	template_byte, err := ioutil.ReadFile(wab_email_template)
+	checkErr(err, "File Opening ERROR")
+	template_email_string := string(template_byte[:])
+	
+	var email_content string
+	email_content = strings.Replace(template_email_string, "{{code}}", entity.Confirmation_code, 1)
+	email_content = strings.Replace(template_email_string, "{{url}}", ignore_url, 1)
 
+	email := &models.Email{
+		TemplatePath: wab_email_template,	
+		Content: email_content, 	
+		Subject: "Adicionar contato à ignore list do Warn A Broda",		
+		ToAddress: entity.Contact,
+		FromName: "Warn A Broda",
+		LangKey: "br",
+		Async: false,
+		UseContent: true,
+		HTMLContent: true,
+	}	
+	
+	SendMail(email, db)
 }
 
 func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){

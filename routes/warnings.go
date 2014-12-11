@@ -35,7 +35,7 @@ func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {
 		Content: email_content, 	
 		Subject: subject.Name,		
 		ToAddress: entity.Contact,
-		FromName: "Warn A Broda : Aviso Secreto",
+		FromName: "Warn A Broda",
 		LangKey: "br",
 		Async: false,
 		UseContent: true,
