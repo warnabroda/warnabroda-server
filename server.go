@@ -50,8 +50,10 @@ func init() {
 	// r.Delete(`/warnabroda/warnings/:id`, routes.DeleteWarning)
 
 
-	r.Get(`/warnabroda/ignore-list/:id`, routes.GetIgnoreContact)
+	// r.Get(`/warnabroda/ignore-list/:id`, routes.GetIgnoreContact)
 	r.Post(`/warnabroda/ignore-list`, binding.Json(models.Ignore_List{}), routes.AddIgnoreList)
+	r.Post(`/warnabroda/ignore-list-confirm`, binding.Json(models.Ignore_List{}), routes.ConfirmIgnoreList)
+	
 	// r.Put(`/warnabroda/ignore_list/:id`, binding.Json(models.Subject{}), routes.UpdateIgnoreList)
 	// r.Delete(`/warnabroda/ignore_list/:id`, routes.DeleteIgnoreList)
 

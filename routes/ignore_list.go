@@ -35,22 +35,6 @@ func randInt(min int, max int) int {
     return min + rand.Intn(max-min)
 }
 
-func GetIgnoreContact(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
-	
-	id, err := strconv.Atoi(parms["id"])
-
-	var ignored models.Ignore_List
-	err = db.SelectOne(&ignored, "SELECT * FROM ignore_list WHERE confirmation_code=?", id)
-	if err != nil {
-		checkErr(err, "select failed")
-		return http.StatusInternalServerError, ""
-	}
-
-	UpdateIgnoreList(&ignored, db)
-	
-	return http.StatusOK, Must(enc.EncodeOne(ignored))
-}
-
 func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	//reads the e-mail template from a local file
 	wab_email_template := wab_root + "/models/ignoreme.html"
@@ -166,6 +150,30 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 	return http.StatusCreated, Must(enc.EncodeOne(status))
 }
 
+func ConfirmIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
+	fmt.Println(w)
+	status := &models.Message{
+			Id:       200,
+			Name:     "Ignorado com Sucesso, se um dia você se arrepender, entre em contato conosco é a unica forma de voltar a participar do Warn A Broda.",
+			Lang_key: "br",
+		}
+
+	ignored := GetIgnoreContact(db, entity.Confirmation_code)
+
+	if ignored != nil {
+		ignored.Confirmed = true
+		UpdateIgnoreList(ignored, db)
+	} else {
+		status = &models.Message{
+			Id:       403,
+			Name:     "Código inválido.",
+			Lang_key: "br",
+		}
+	}
+
+	return http.StatusCreated, Must(enc.EncodeOne(status))
+}
+
 func DeleteIgnoreList(db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	id, err := strconv.Atoi(parms["id"])
 	obj, _ := db.Get(models.Ignore_List{}, id)
@@ -208,6 +216,16 @@ func InIgnoreList(db gorp.SqlExecutor, contact string) *models.Ignore_List {
 	return &ignored
 }
 
+func GetIgnoreContact(db gorp.SqlExecutor, id string) *models.Ignore_List {	
+
+	var ignored models.Ignore_List
+	err := db.SelectOne(&ignored, "SELECT * FROM ignore_list WHERE confirmation_code=?", id)
+	if err != nil {
+		return nil
+	}
+	
+	return &ignored
+}
 
 func IgnoreListCleaner(){
 	sql := "DELETE FROM ignore_list WHERE confirmed = false AND (created_date + INTERVAL 24 HOUR) < NOW()"
