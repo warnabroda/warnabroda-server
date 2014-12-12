@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	wab_root 			= os.Getenv("WARNAROOT")		
+	wab_root 			= os.Getenv("WARNAROOT")
 )
 
 func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {	

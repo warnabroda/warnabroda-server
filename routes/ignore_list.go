@@ -10,12 +10,18 @@ import (
 	"time"
 	"math/rand"
 	"strings"
-	"io/ioutil"
+	"io/ioutil"	
+	"fmt"	
 )
 
 const (
 	ignore_url = "www.warnabroda.com/#/ignoreme"
 )
+
+func init(){
+
+	IgnoreListCleaner()	
+}
 
 func randomString(l int ) string {
     bytes := make([]byte, l)
@@ -101,14 +107,24 @@ func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 	
 	status := &models.Message{
-		Id:       200,
-		Name:     "Favor confirmar bloqueio de contato",
-		Lang_key: "br",
-	}	
+			Id:       200,
+			Name:     "Favor confirmar bloqueio de contato",
+			Lang_key: "br",
+		}
+
+	if MoreThanTwoRequestByIp(db, &entity){
+		status = &models.Message{
+			Id:       403,
+			Name:     "Ooopa! Pra que tantas solicitações Broda? Se você possui mais de 2 contatos à bloquear por vez, entre em contato com o Warn A Broda.",
+			Lang_key: "br",
+		}
+		return http.StatusCreated, Must(enc.EncodeOne(status))		
+	} 
 
 	ingnored := InIgnoreList(db, entity.Contact)
+	fmt.Println(ingnored)
 
-	if ingnored!=nil && ingnored.Confirmed {
+	if ingnored!= nil && ingnored.Confirmed {
 
 		status = &models.Message{
 			Id:       403,
@@ -118,10 +134,10 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 
 		return http.StatusCreated, Must(enc.EncodeOne(status))
 
-	} else if ingnored!=nil {
+	} else if ingnored!= nil {
 		status = &models.Message{
 			Id:       403,
-			Name:     "Solicitações de Ignore-me devem ser confirmadas entre as 00:00 e as 23:59 do dia em que foram solicitadas!",
+			Name:     "Solicitações de bloqeuio expiram em 24 horas. Aguarde para solicitar novamente ou entre em contato com o Warn A Broda.",
 			Lang_key: "br",
 		}
 
@@ -168,7 +184,7 @@ func DeleteIgnoreList(db gorp.SqlExecutor, parms martini.Params) (int, string) {
 }
 
 func UpdateIgnoreList(entity *models.Ignore_List, db gorp.SqlExecutor) {
-	entity.Confirmed = true
+	
 	entity.Last_modified_date = time.Now().String()
 	_, err := db.Update(entity)
 	if err != nil {
@@ -184,25 +200,40 @@ func InIgnoreList(db gorp.SqlExecutor, contact string) *models.Ignore_List {
 		map[string]interface{}{
 	  		"contact": contact, 	  		
 		})
-	checkErr(err, "select failed")
+	if err != nil {
+		return nil
+	}
 	
 
 	return &ignored
 }
 
-func IsIgnoreRequestUnconfirmedSentToday(db gorp.SqlExecutor, contact string) bool {	
 
-	str_today 	:= time.Now().Format(models.JsonFormat)
-
-	select_stmt := "SELECT COUNT(*) FROM ignore_list "
-	select_stmt += "WHERE Contact= ? AND confirmed = false "
-	select_stmt += " Created_date BETWEEN '" + str_today + " 00:00:00' AND '" + str_today + " 23:59:59' "
-
-	exists, err := db.SelectInt(select_stmt, contact)
-	checkErr(err, "select failed")
-	
-
-	return exists > 0
+func IgnoreListCleaner(){
+	sql := "DELETE FROM ignore_list WHERE confirmed = false AND (created_date + INTERVAL 24 HOUR) < NOW()"
+	models.Dbm.Exec(sql)
+	ticker := time.NewTicker(time.Hour)
+	quit := make(chan struct{})
+	go func() {
+	    for {
+	       select {
+	        case <- ticker.C:	        	
+	            models.Dbm.Exec(sql)
+	        case <- quit:
+	            ticker.Stop()
+	            return
+	        }
+	    }
+	 }()
 }
 
-//TODO: EXPIRAR A REQUISICAO DIARIAMENTE E REMOVER DO BANCO
+func MoreThanTwoRequestByIp(db gorp.SqlExecutor, entity *models.Ignore_List) bool{
+
+	sql := "SELECT COUNT(*) FROM ignore_list WHERE ip=? AND (created_date + INTERVAL 2 HOUR) > NOW()"
+
+	total, err := db.SelectInt(sql, entity.Ip)
+	checkErr(err, "COUNT ERROR")
+
+	return total >= 2
+
+}

@@ -59,6 +59,7 @@ func init() {
 	m.MapTo(models.Dbm, (*gorp.SqlExecutor)(nil))
 	// Add the router action
 	m.Action(r.Handle)
+	
 }
 
 // The regex to check for the requested format (allows an optional trailing
