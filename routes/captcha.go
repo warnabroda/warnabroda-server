@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 func CaptchaResponse(captcha models.Captcha, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
@@ -15,10 +16,10 @@ func CaptchaResponse(captcha models.Captcha, w http.ResponseWriter, enc Encoder,
 	u.Scheme = "https"
 	u.Host = "www.google.com"
 	q := u.Query()
-	q.Set("secret", "6LfcKP8SAAAAADK2RSEiv5PBQrNSrfimkynWfaPd")
+
+	q.Set("secret", os.Getenv("WARNACAPTCHA"))
 	q.Set("response", captcha.Response)
-	q.Set("remoteip", captcha.Ip)	
-	q.Set("v", "php_1.0")	
+	q.Set("remoteip", captcha.Ip)			
 	u.RawQuery = q.Encode()
 
 	res, err := http.Get(u.String())	
