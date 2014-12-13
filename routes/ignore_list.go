@@ -105,8 +105,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 		return http.StatusCreated, Must(enc.EncodeOne(status))		
 	} 
 
-	ingnored := InIgnoreList(db, entity.Contact)
-	fmt.Println(ingnored)
+	ingnored := InIgnoreList(db, entity.Contact)	
 
 	if ingnored!= nil && ingnored.Confirmed {
 

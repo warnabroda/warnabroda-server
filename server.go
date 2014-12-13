@@ -57,6 +57,8 @@ func init() {
 	// r.Put(`/warnabroda/ignore_list/:id`, binding.Json(models.Subject{}), routes.UpdateIgnoreList)
 	// r.Delete(`/warnabroda/ignore_list/:id`, routes.DeleteIgnoreList)
 
+	r.Post(`/warnabroda/captcha-validate`, binding.Json(models.Captcha{}), routes.CaptchaResponse)
+
 	// Inject database
 	m.MapTo(models.Dbm, (*gorp.SqlExecutor)(nil))
 	// Add the router action
