@@ -10,8 +10,7 @@ import (
 	"time"
 	"math/rand"
 	"strings"
-	"io/ioutil"	
-	"fmt"	
+	"io/ioutil"		
 )
 
 const (
