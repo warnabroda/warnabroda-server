@@ -5,10 +5,13 @@ import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/routes"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/binding"
+	"github.com/martini-contrib/binding"	
+	"github.com/martini-contrib/sessionauth"
+	"github.com/martini-contrib/sessions"
 	"net/http"
 	"regexp"
 	"strings"
+	"fmt"
 )
 
 // The one and only martini instance.
@@ -59,11 +62,13 @@ func init() {
 
 	r.Post(`/warnabroda/captcha-validate`, binding.Json(models.Captcha{}), routes.CaptchaResponse)
 
+	r.Get(`/warnabroda/accoun/t:id`, routes.GetUserById)
+	
+
 	// Inject database
 	m.MapTo(models.Dbm, (*gorp.SqlExecutor)(nil))
 	// Add the router action
-	m.Action(r.Handle)
-	
+	m.Action(r.Handle)	
 }
 
 // The regex to check for the requested format (allows an optional trailing
@@ -102,5 +107,26 @@ func MapEncoder(c martini.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	r := martini.NewRouter()
+
+	store := sessions.NewCookieStore([]byte("warnasecret"))
+	store.Options(sessions.Options{
+		MaxAge: 0,
+	})
+
+	m.Use(sessions.Sessions("my_session", store))
+	m.Use(sessionauth.SessionUser(models.GenerateAnonymousUser))
+	sessionauth.RedirectUrl = "/hq"
+
+	r.Post("/warnabroda/authentication", binding.Bind(models.User{}), routes.DoLogin)
+
+	r.Get("/warnabroda/logout", sessionauth.LoginRequired, func(session sessions.Session, user sessionauth.User) {
+		fmt.Println("#######   Logout funfou certinho #########")
+		sessionauth.Logout(session, user)		
+
+	})	
+
 	m.Run()
+
 }
