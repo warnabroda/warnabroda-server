@@ -1,19 +1,30 @@
 package models
 
 import (	
-	"github.com/martini-contrib/sessionauth"	
+	"github.com/martini-contrib/sessionauth"
+	"time"
 )
 
 // User can be any struct that represents a user in my system
 type User struct {
-	Id            	int64  `json:"id"`
-	Username      	string `json:"username"`
-	Password      	string `json:"password"`
-	Name			string `json:"name"`
-	Email			string `json:"email"`
-	LastLogin		string `json:"last_login"`
-	UserHole 		string `json:"user_hole"`
-	Authenticated 	bool   `json:"authenticated"`
+	Id            	int64  `json:"id" db:"id"`
+	Username      	string `json:"username" db:"username"`
+	Password      	string `json:"-" db:"password"`
+	Name			string `json:"name" db:"name"`
+	Email			string `json:"email" db:"email"`
+	Last_login		string `json:"last_login" db:"last_login"`
+	User_hole 		string `json:"user_hole" db:"user_hole"`
+	Authenticated 	bool   `json:"authenticated" db:"authenticated"`
+}
+
+type UserLogin struct {
+	Username      	 string `json:"username" form:"username"`
+	Password      	 string `json:"password" form:"password"`
+	Ip 				 string `json:"ip" form:"ip"`  
+    Browser 		 string `json:"browser" form:"browser"`  
+    Operating_system string `json:"operating_system" form:"operating_system"`  
+    Device 			 string `json:"device" form:"device"`  
+    Raw 			 string `json:"raw" form:"raw"`
 }
 
 // GetAnonymousUser should generate an anonymous user model
@@ -56,4 +67,9 @@ func (u *User) GetById(id interface{}) error {
 	}
 
 	return nil
+}
+
+func (u *User) UpdateLastLogin(){
+	u.Last_login = time.Now().String()
+	Dbm.Update(u)
 }

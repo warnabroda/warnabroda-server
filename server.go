@@ -8,10 +8,11 @@ import (
 	"github.com/martini-contrib/binding"	
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
+	// "github.com/martini-contrib/strict"
 	"net/http"
 	"regexp"
 	"strings"
-	"fmt"
+	// "fmt"
 )
 
 // The one and only martini instance.
@@ -24,6 +25,7 @@ func init() {
 	m.Use(martini.Logger())
 	m.Use(martini.Static("public"))
 	m.Use(MapEncoder)
+	// m.Use(strict.Strict)
 	// Setup routes
 	r := martini.NewRouter()
 
@@ -62,8 +64,25 @@ func init() {
 
 	r.Post(`/warnabroda/captcha-validate`, binding.Json(models.Captcha{}), routes.CaptchaResponse)
 
-	r.Get(`/warnabroda/accoun/t:id`, routes.GetUserById)
-	
+	r.Get(`/warnabroda/account/:id`, routes.GetUserById)	
+
+
+
+	store := sessions.NewCookieStore([]byte("warnasecret"))
+	store.Options(sessions.Options{
+		MaxAge: 0,
+	})
+
+	m.Use(sessions.Sessions("my_session", store))
+	m.Use(sessionauth.SessionUser(models.GenerateAnonymousUser))
+	sessionauth.RedirectUrl = "/hq"	
+
+	r.Get(`/warnabroda/private`, routes.IsAuthenticated)
+
+	r.Get(`/warnabroda/logout`, routes.DoLogout)
+
+	// r.Post(`/warnabroda/authentication`, strict.ContentType("application/x-www-form-urlencoded"), binding.Form(models.UserLogin{}), routes.DoLogin)	
+	r.Post(`/warnabroda/authentication`, binding.Json(models.UserLogin{}), routes.DoLogin)	
 
 	// Inject database
 	m.MapTo(models.Dbm, (*gorp.SqlExecutor)(nil))
@@ -107,25 +126,6 @@ func MapEncoder(c martini.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-
-	r := martini.NewRouter()
-
-	store := sessions.NewCookieStore([]byte("warnasecret"))
-	store.Options(sessions.Options{
-		MaxAge: 0,
-	})
-
-	m.Use(sessions.Sessions("my_session", store))
-	m.Use(sessionauth.SessionUser(models.GenerateAnonymousUser))
-	sessionauth.RedirectUrl = "/hq"
-
-	r.Post("/warnabroda/authentication", binding.Bind(models.User{}), routes.DoLogin)
-
-	r.Get("/warnabroda/logout", sessionauth.LoginRequired, func(session sessions.Session, user sessionauth.User) {
-		fmt.Println("#######   Logout funfou certinho #########")
-		sessionauth.Logout(session, user)		
-
-	})	
 
 	m.Run()
 

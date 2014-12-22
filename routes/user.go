@@ -9,51 +9,49 @@ import (
 	"net/http"
 	"strconv"
 	"fmt"
-
+	// "encoding/json"
+	// "strings"
 )
 
 func GetUserById(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	
-	id, err := strconv.Atoi(parms["id"])
-	obj, _ := db.Get(models.User{}, id)
-	if err != nil || obj == nil {
+	id, err := strconv.Atoi(parms["id"])	
+
+	if err != nil {
 		checkErr(err, "get failed")
-		// Invalid id, or does not exist
-		return http.StatusNotFound, ""
 	}
-	entity := obj.(*models.User)
-	fmt.Println("ta sendo chamado")
-	fmt.Println(entity)
+	
+	entity := UserById(id, db)
+
 	return http.StatusOK, Must(enc.EncodeOne(entity))
 }
 
-func GetUserByLogin(postedUser models.User) *models.User {	
+func UserById(id int, db gorp.SqlExecutor) *models.User {
+	
+	obj, err := db.Get(models.User{}, id)
+	if err != nil {
+		return nil
+	}
+	entity := obj.(*models.User)
+
+	return entity
+}
+
+func GetUserByLogin(postedUser models.UserLogin) *models.User {	
 
 	user := models.User{}
 
-	err := models.Dbm.SelectOne(&user, "SELECT * FROM users WHERE username = :user and password = :pass ",  
+	models.Dbm.SelectOne(&user, "SELECT * FROM users WHERE (username = :user OR email = :user) AND password = :pass ",  
 		map[string]interface{}{
 	  		"user": postedUser.Username,
 	  		"pass": postedUser.Password,
 		})
-	checkErr(err, "LOGIN FAILED MISERABLY")
+	//checkErr(err, "LOGIN FAILED MISERABLY")
 
 	return &user
 }
 
-func DoLogin(entity models.User, session sessions.Session, enc Encoder, db gorp.SqlExecutor) (int, string){
-
-	fmt.Println(entity)
-	fmt.Println("-------")
-	fmt.Println(session)
-	fmt.Println("-------")
-	fmt.Println(enc)
-	fmt.Println("-------")
-	fmt.Println(db)
-	fmt.Println("-------")
-	//fmt.Println(sessionauth)
-	fmt.Println("-------")
-
+func DoLogin(entity models.UserLogin, r *http.Request, session sessions.Session, enc Encoder, db gorp.SqlExecutor) (int, string){
 	
 	status := &models.Message{
 			Id:       http.StatusUnauthorized,
@@ -65,17 +63,58 @@ func DoLogin(entity models.User, session sessions.Session, enc Encoder, db gorp.
 		
 		
 	if user.Name == "" {
+		sessionauth.Logout(session, user)
+		session.Clear()
 		return http.StatusUnauthorized, Must(enc.EncodeOne(status))
-	} else {
+	} else {		
 		err := sessionauth.AuthenticateSession(session, user)
 		if err != nil {
 			status.Name = "Erro ao iniciar Sessão."	
 			return http.StatusUnauthorized, Must(enc.EncodeOne(status))
-		}			
+		}
+		user.Authenticated = true	
+		user.UpdateLastLogin()
 		status.Name = "Login realizado com sucesso!"
-		return http.StatusOK, Must(enc.EncodeOne(status))
+		return http.StatusOK, Must(enc.EncodeOne(user))
 		
 	}
 
 	return http.StatusUnauthorized, Must(enc.EncodeOne(status))
+}
+
+func IsAuthenticated(enc Encoder, user sessionauth.User) (int, string) {
+
+	fmt.Println(user)
+
+	if user.IsAuthenticated(){
+		return http.StatusOK,  ""
+	}
+
+
+	return http.StatusUnauthorized,  Must(enc.EncodeOne(user))
+}
+
+func DoLogout(enc Encoder, session sessions.Session, user sessionauth.User, db gorp.SqlExecutor) (int, string) {
+
+	status := &models.Message{
+			Id:       http.StatusOK,
+			Name:     "Usuario não está logado.",
+			Lang_key: "br",
+		}
+
+	if user.IsAuthenticated() {
+
+		sessionauth.Logout(session, user)
+		session.Clear()
+		status.Name = "Logout Realizado com sucesso."
+
+	}
+	
+
+	updateUser := UserById(user.UniqueId().(int), db)
+
+	updateUser.Authenticated = false
+	db.Update(updateUser)
+
+	return http.StatusOK,  Must(enc.EncodeOne(status))
 }
