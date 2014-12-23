@@ -3,10 +3,10 @@ package routes
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
 	"github.com/coopernurse/gorp"
-//	"io/ioutil"
-//	"net/http"
+	"io/ioutil"
+	"net/http"
 	"net/url"
-	"fmt"
+	//"fmt"
 )
 
 func SendSMS(sms *models.SMS, db gorp.SqlExecutor) (bool, string) {
@@ -24,15 +24,15 @@ func SendSMS(sms *models.SMS, db gorp.SqlExecutor) (bool, string) {
 	q.Set("MESSAGE", sms.Content)
 	u.RawQuery = q.Encode()
 
-	fmt.Println(u)
+//	fmt.Println(u)
 
-	//res, err := http.Get(u.String())	
-	// checkErr(err, "SMS Not Sent")
+	res, err := http.Get(u.String())	
+	checkErr(err, "SMS Not Sent")
 
-	//robots, err := ioutil.ReadAll(res.Body)
-	//res.Body.Close()
-	// checkErr(err, "No response from SMS Sender")
+	robots, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	 checkErr(err, "No response from SMS Sender")
 
-	return true, "TESTE"
-	//return err == nil, string(robots[:])
+	//return true, "TESTE"
+	return err == nil, string(robots[:])
 }
