@@ -7,7 +7,7 @@ import (
 
 // User can be any struct that represents a user in my system
 type User struct {
-	Id            	int64  `json:"id" db:"id"`
+	Id            	int  `json:"id" db:"id"`
 	Username      	string `json:"username" db:"username"`
 	Password      	string `json:"-" db:"password"`
 	Name			string `json:"name" db:"name"`

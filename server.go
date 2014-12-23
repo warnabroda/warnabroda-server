@@ -81,6 +81,8 @@ func init() {
 
 	r.Get(`/warnabroda/logout`, routes.DoLogout)
 
+	r.Get(`/warnabroda/authenticated-user`, routes.GetAuthenticatedUser)
+
 	// r.Post(`/warnabroda/authentication`, strict.ContentType("application/x-www-form-urlencoded"), binding.Form(models.UserLogin{}), routes.DoLogin)	
 	r.Post(`/warnabroda/authentication`, binding.Json(models.UserLogin{}), routes.DoLogin)	
 

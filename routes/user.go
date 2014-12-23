@@ -8,7 +8,7 @@ import (
 	"github.com/martini-contrib/sessions"
 	"net/http"
 	"strconv"
-	"fmt"
+	//"fmt"
 	// "encoding/json"
 	// "strings"
 )
@@ -65,12 +65,12 @@ func DoLogin(entity models.UserLogin, r *http.Request, session sessions.Session,
 	if user.Name == "" {
 		sessionauth.Logout(session, user)
 		session.Clear()
-		return http.StatusUnauthorized, Must(enc.EncodeOne(status))
+		return http.StatusForbidden, Must(enc.EncodeOne(status))
 	} else {		
 		err := sessionauth.AuthenticateSession(session, user)
 		if err != nil {
 			status.Name = "Erro ao iniciar Sessão."	
-			return http.StatusUnauthorized, Must(enc.EncodeOne(status))
+			return http.StatusForbidden, Must(enc.EncodeOne(status))
 		}
 		user.Authenticated = true	
 		user.UpdateLastLogin()
@@ -79,12 +79,10 @@ func DoLogin(entity models.UserLogin, r *http.Request, session sessions.Session,
 		
 	}
 
-	return http.StatusUnauthorized, Must(enc.EncodeOne(status))
+	return http.StatusForbidden, Must(enc.EncodeOne(status))
 }
 
-func IsAuthenticated(enc Encoder, user sessionauth.User) (int, string) {
-
-	fmt.Println(user)
+func IsAuthenticated(enc Encoder, user sessionauth.User) (int, string) {	
 
 	if user.IsAuthenticated(){
 		return http.StatusOK,  ""
@@ -117,4 +115,17 @@ func DoLogout(enc Encoder, session sessions.Session, user sessionauth.User, db g
 	db.Update(updateUser)
 
 	return http.StatusOK,  Must(enc.EncodeOne(status))
+}
+
+
+func GetAuthenticatedUser(enc Encoder, user sessionauth.User, db gorp.SqlExecutor) (int, string) {
+	
+	if user.IsAuthenticated() {
+
+		authUser := UserById(user.UniqueId().(int), db)
+
+		return http.StatusOK,  Must(enc.EncodeOne(authUser))
+	} 
+
+	return http.StatusUnauthorized,  Must(enc.EncodeOne(user))
 }
