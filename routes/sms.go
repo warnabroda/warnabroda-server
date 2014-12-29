@@ -9,6 +9,7 @@ import (
 	"fmt"
 )
 
+// Component to send a SMS using mobile pronto
 func SendSMS(sms *models.SMS, db gorp.SqlExecutor) (bool, string) {
 	u, err := url.Parse(sms.URLPath)
 	checkErr(err, "Ugly URL")

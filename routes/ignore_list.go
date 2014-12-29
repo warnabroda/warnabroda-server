@@ -15,21 +15,31 @@ import (
 )
 
 const (
-	URL_IGNOREME 						= "www.warnabroda.com/#/ignoreme"
-	MSG_TOO_MANY_IGNOREME_REQUESTS		= "Ooopa! Pra que tantas solicitações Broda? Se você possui mais de 2 contatos à bloquear por vez, entre em contato com o Warn A Broda."
-	MSG_CONFIRM_IGNOREME				= "Favor confirmar bloqueio de contato"
-	MSG_EMAIL_SUBJECT_ADD_IGNORE_LIST	= "Adicionar contato à ignore list do Warn A Broda"
-	MSG_SMS_IGNORE_CONFIRMATION_REQUEST	= "Pro Warn A Broda lhe ignorar efetivamente, " +
-										"por favor entre em: " + 
-										URL_IGNOREME + 
-										" e informe o codigo: "
+	URL_IGNOREME 							= "www.warnabroda.com/#/ignoreme"
+	MSG_IGNOREME_CODE_INVALID				= "Código inválido."
+	MSG_IGNORED_SUCCESSFUL					= "Ignorado com Sucesso, se um dia você se arrepender, entre em contato conosco é a unica forma de voltar a participar do Warn A Broda."
+	MSG_CONTACT_ALREADY_IGNORED				= "Contato Já estava na Lista de Ignorados!"
+	MSG_IGNORE_REQUEST_EXISTS				= "Solicitações de bloqeuio expiram em 24 horas. Aguarde para solicitar novamente ou entre em contato com o Warn A Broda."
+	MSG_TOO_MANY_IGNOREME_REQUESTS			= "Ooopa! Pra que tantas solicitações Broda? Se você possui mais de 2 contatos à bloquear por vez, entre em contato com o Warn A Broda."
+	MSG_CONFIRM_IGNOREME					= "Favor confirmar bloqueio de contato"
+	MSG_EMAIL_SUBJECT_ADD_IGNORE_LIST		= "Adicionar contato à ignore list do Warn A Broda"
+	MSG_SMS_IGNORE_CONFIRMATION_REQUEST		= "Pro Warn A Broda lhe ignorar efetivamente, " +
+											"por favor entre em: " + 
+											URL_IGNOREME + 
+											" e informe o codigo: "
+	SQL_IN_IGNORE_LIST_BY_CONTACT			= "SELECT * FROM ignore_list WHERE Contact= :contact "
+	SQL_IN_IGNORE_LIST_BY_CODE				= "SELECT * FROM ignore_list WHERE confirmation_code= :code"
+	SQL_REMOVE_OLD_IGNOREME_REQUESTS		= "DELETE FROM ignore_list WHERE confirmed = false AND (created_date + INTERVAL 24 HOUR) < NOW()"
+	SQL_COUNT_MULTIPLE_IGNOREME_REQUESTS	= "SELECT COUNT(*) FROM ignore_list WHERE ip=? AND (created_date + INTERVAL 2 HOUR) > NOW()"
 )
 
+//Initialize all required functions when container is up.
 func init(){
 
 	IgnoreListCleaner()	
 }
 
+// Generate random A-Z letters 6 sized for ignore list confirmation purpose
 func randomString(l int ) string {
     bytes := make([]byte, l)
     for i:=0 ; i<l ; i++ {
@@ -38,10 +48,12 @@ func randomString(l int ) string {
     return string(bytes)
 }
 
+// Generate random number based upon a min and max range
 func randInt(min int, max int) int {
     return min + rand.Intn(max-min)
 }
 
+// opens the template, parse the variables sets the email struct and Send the confirmation code to confirm the ignored contact.
 func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	//reads the e-mail template from a local file
 	wab_email_template := wab_root + "/models/ignoreme.html"
@@ -68,6 +80,7 @@ func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	SendMail(email, db)
 }
 
+// send a SMS with the confirmation code to confirm the ignored contact
 func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){	
 
 	sms := &models.SMS {
@@ -90,6 +103,7 @@ func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	}
 }
 
+// Add the request to be ignored for future warnings, it requires further confimation
 func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 	
 	status := &models.DefaultStruct{
@@ -113,7 +127,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 
 		status = &models.DefaultStruct{
 			Id:       http.StatusForbidden,
-			Name:     "Contato Já estava na Lista de Ignorados!",
+			Name:     MSG_CONTACT_ALREADY_IGNORED,
 			Lang_key: i18n.BR_LANG_KEY,
 		}
 
@@ -122,7 +136,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 	} else if ingnored!= nil {
 		status = &models.DefaultStruct{
 			Id:       http.StatusForbidden,
-			Name:     "Solicitações de bloqeuio expiram em 24 horas. Aguarde para solicitar novamente ou entre em contato com o Warn A Broda.",
+			Name:     MSG_IGNORE_REQUEST_EXISTS,
 			Lang_key: i18n.BR_LANG_KEY,
 		}
 
@@ -151,11 +165,12 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 	return http.StatusCreated, Must(enc.EncodeOne(status))
 }
 
+// Confirm the request for ignore list
 func ConfirmIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 	
 	status := &models.DefaultStruct{
 			Id:       http.StatusOK,
-			Name:     "Ignorado com Sucesso, se um dia você se arrepender, entre em contato conosco é a unica forma de voltar a participar do Warn A Broda.",
+			Name:     MSG_IGNORED_SUCCESSFUL,
 			Lang_key: i18n.BR_LANG_KEY,
 		}
 
@@ -167,7 +182,7 @@ func ConfirmIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Enc
 	} else {
 		status = &models.DefaultStruct{
 			Id:       http.StatusForbidden,
-			Name:     "Código inválido.",
+			Name:     MSG_IGNOREME_CODE_INVALID,
 			Lang_key: i18n.BR_LANG_KEY,
 		}
 	}
@@ -201,35 +216,41 @@ func UpdateIgnoreList(entity *models.Ignore_List, db gorp.SqlExecutor) {
 	}
 }
 
+// Check if the contact already requested an ignore list add.
+// In case the contact exists on the list the method returns it
 func InIgnoreList(db gorp.SqlExecutor, contact string) *models.Ignore_List {	
 
 	ignored := models.Ignore_List{}
 
-	err := db.SelectOne(&ignored, "SELECT * FROM ignore_list WHERE Contact= :contact ",  
+	err := db.SelectOne(&ignored, SQL_IN_IGNORE_LIST_BY_CONTACT,  
 		map[string]interface{}{
-	  		"contact": contact, 	  		
+	  		"contact": contact,
+		})
+	if err != nil {
+		return nil
+	}	
+
+	return &ignored
+}
+
+// Get an existent ignoreme register, in case there is none returns nil
+func GetIgnoreContact(db gorp.SqlExecutor, id string) *models.Ignore_List {	
+
+	var ignored models.Ignore_List
+	err := db.SelectOne(&ignored, SQL_IN_IGNORE_LIST_BY_CODE, 
+		map[string]interface{}{
+	  		"code": id, 	  		
 		})
 	if err != nil {
 		return nil
 	}
 	
-
 	return &ignored
 }
 
-func GetIgnoreContact(db gorp.SqlExecutor, id string) *models.Ignore_List {	
-
-	var ignored models.Ignore_List
-	err := db.SelectOne(&ignored, "SELECT * FROM ignore_list WHERE confirmation_code=?", id)
-	if err != nil {
-		return nil
-	}
-	
-	return &ignored
-}
-
+// Remove all requests non confirmed older than 24 hours
 func IgnoreListCleaner(){
-	sql := "DELETE FROM ignore_list WHERE confirmed = false AND (created_date + INTERVAL 24 HOUR) < NOW()"
+	sql := SQL_REMOVE_OLD_IGNOREME_REQUESTS
 	models.Dbm.Exec(sql)
 	ticker := time.NewTicker(time.Hour)
 	quit := make(chan struct{})
@@ -246,9 +267,10 @@ func IgnoreListCleaner(){
 	 }()
 }
 
+// intercepts more than two requests to ignore list add.
 func MoreThanTwoRequestByIp(db gorp.SqlExecutor, entity *models.Ignore_List) bool{
 
-	sql := "SELECT COUNT(*) FROM ignore_list WHERE ip=? AND (created_date + INTERVAL 2 HOUR) > NOW()"
+	sql := SQL_COUNT_MULTIPLE_IGNOREME_REQUESTS
 
 	total, err := db.SelectInt(sql, entity.Ip)
 	checkErr(err, "COUNT ERROR")

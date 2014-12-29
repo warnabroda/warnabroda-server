@@ -9,6 +9,7 @@ import (
 	"os"
 )
 
+// Get google's captcha response
 func CaptchaResponse(captcha models.Captcha, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 	u, err := url.Parse("https://www.google.com/recaptcha/api/siteverify?")
 	checkErr(err, "Ugly URL")	
