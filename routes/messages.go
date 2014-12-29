@@ -10,7 +10,7 @@ import (
 )
 
 func GetMessages(enc Encoder, db gorp.SqlExecutor) (int, string) {
-	var messages []models.Message
+	var messages []models.DefaultStruct
 	_, err := db.Select(&messages, "SELECT * FROM messages ORDER BY name")
 	if err != nil {
 		checkErr(err, "select failed")
@@ -21,19 +21,19 @@ func GetMessages(enc Encoder, db gorp.SqlExecutor) (int, string) {
 
 func GetMessage(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	id, err := strconv.Atoi(parms["id"])
-	obj, _ := db.Get(models.Message{}, id)
+	obj, _ := db.Get(models.DefaultStruct{}, id)
 	if err != nil || obj == nil {
 		checkErr(err, "get failed")
 		// Invalid id, or does not exist
 		return http.StatusNotFound, ""
 	}
-	entity := obj.(*models.Message)
+	entity := obj.(*models.DefaultStruct)
 	return http.StatusOK, Must(enc.EncodeOne(entity))
 }
 
-func SelectMessage(db gorp.SqlExecutor, id int64) models.Message {
+func SelectMessage(db gorp.SqlExecutor, id int64) models.DefaultStruct {
 
-	entity := models.Message{}
+	entity := models.DefaultStruct{}
 
 	err := db.SelectOne(&entity, "SELECT * FROM messages WHERE id=?", id)
 
@@ -44,7 +44,7 @@ func SelectMessage(db gorp.SqlExecutor, id int64) models.Message {
 	return entity
 }
 
-func AddMessage(entity models.Message, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
+func AddMessage(entity models.DefaultStruct, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 	err := db.Insert(&entity)
 	if err != nil {
 		checkErr(err, "insert failed")
@@ -54,15 +54,15 @@ func AddMessage(entity models.Message, w http.ResponseWriter, enc Encoder, db go
 	return http.StatusCreated, Must(enc.EncodeOne(entity))
 }
 
-func UpdateMessage(entity models.Message, enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
+func UpdateMessage(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	id, err := strconv.Atoi(parms["id"])
-	obj, _ := db.Get(models.Message{}, id)
+	obj, _ := db.Get(models.DefaultStruct{}, id)
 	if err != nil || obj == nil {
 		checkErr(err, "get failed")
 		// Invalid id, or does not exist
 		return http.StatusNotFound, ""
 	}
-	oldEntity := obj.(*models.Message)
+	oldEntity := obj.(*models.DefaultStruct)
 
 	entity.Id = oldEntity.Id
 	_, err = db.Update(&entity)
@@ -75,13 +75,13 @@ func UpdateMessage(entity models.Message, enc Encoder, db gorp.SqlExecutor, parm
 
 func DeleteMessage(db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	id, err := strconv.Atoi(parms["id"])
-	obj, _ := db.Get(models.Message{}, id)
+	obj, _ := db.Get(models.DefaultStruct{}, id)
 	if err != nil || obj == nil {
 		checkErr(err, "get failed")
 		// Invalid id, or does not exist
 		return http.StatusNotFound, ""
 	}
-	entity := obj.(*models.Message)
+	entity := obj.(*models.DefaultStruct)
 	_, err = db.Delete(entity)
 	if err != nil {
 		checkErr(err, "delete failed")
@@ -90,7 +90,7 @@ func DeleteMessage(db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	return http.StatusNoContent, ""
 }
 
-func messagesToIface(v []models.Message) []interface{} {
+func messagesToIface(v []models.DefaultStruct) []interface{} {
 	if len(v) == 0 {
 		return nil
 	}

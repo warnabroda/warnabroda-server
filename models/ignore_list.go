@@ -1,6 +1,7 @@
 package models
 
 
+// Represents the database model for the ignore_list
 type Ignore_List struct {
     Id int64 `json:"id"`
     

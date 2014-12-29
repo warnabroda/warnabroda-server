@@ -23,11 +23,11 @@ func CaptchaResponse(captcha models.Captcha, w http.ResponseWriter, enc Encoder,
 	u.RawQuery = q.Encode()
 
 	res, err := http.Get(u.String())	
-	checkErr(err, "SMS Not Sent")
+	checkErr(err, "Captcha not verified")
 	
 	robots, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
-	checkErr(err, "No response from SMS Sender")
+	checkErr(err, "No response from Google Captcha Server")
 	
 	
 	return http.StatusOK, string(robots[:])

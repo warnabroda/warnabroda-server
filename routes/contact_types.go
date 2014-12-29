@@ -10,7 +10,7 @@ import (
 )
 
 func GetContact_types(enc Encoder, db gorp.SqlExecutor) (int, string) {
-	var contact_types []models.Contact_type
+	var contact_types []models.DefaultStruct
 	_, err := db.Select(&contact_types, "select * from contact_types order by id")
 	if err != nil {
 		checkErr(err, "select failed")
@@ -21,17 +21,17 @@ func GetContact_types(enc Encoder, db gorp.SqlExecutor) (int, string) {
 
 func GetContact_type(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	id, err := strconv.Atoi(parms["id"])
-	obj, _ := db.Get(models.Contact_type{}, id)
+	obj, _ := db.Get(models.DefaultStruct{}, id)
 	if err != nil || obj == nil {
 		checkErr(err, "get failed")
 		// Invalid id, or does not exist
 		return http.StatusNotFound, ""
 	}
-	entity := obj.(*models.Contact_type)
+	entity := obj.(*models.DefaultStruct)
 	return http.StatusOK, Must(enc.EncodeOne(entity))
 }
 
-func AddContact_type(entity models.Contact_type, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
+func AddContact_type(entity models.DefaultStruct, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 	err := db.Insert(&entity)
 	if err != nil {
 		checkErr(err, "insert failed")
@@ -41,15 +41,15 @@ func AddContact_type(entity models.Contact_type, w http.ResponseWriter, enc Enco
 	return http.StatusCreated, Must(enc.EncodeOne(entity))
 }
 
-func UpdateContact_type(entity models.Contact_type, enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
+func UpdateContact_type(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	id, err := strconv.Atoi(parms["id"])
-	obj, _ := db.Get(models.Contact_type{}, id)
+	obj, _ := db.Get(models.DefaultStruct{}, id)
 	if err != nil || obj == nil {
 		checkErr(err, "get failed")
 		// Invalid id, or does not exist
 		return http.StatusNotFound, ""
 	}
-	oldEntity := obj.(*models.Contact_type)
+	oldEntity := obj.(*models.DefaultStruct)
 
 	entity.Id = oldEntity.Id
 	_, err = db.Update(&entity)
@@ -62,13 +62,13 @@ func UpdateContact_type(entity models.Contact_type, enc Encoder, db gorp.SqlExec
 
 func DeleteContact_type(db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	id, err := strconv.Atoi(parms["id"])
-	obj, _ := db.Get(models.Contact_type{}, id)
+	obj, _ := db.Get(models.DefaultStruct{}, id)
 	if err != nil || obj == nil {
 		checkErr(err, "get failed")
 		// Invalid id, or does not exist
 		return http.StatusNotFound, ""
 	}
-	entity := obj.(*models.Contact_type)
+	entity := obj.(*models.DefaultStruct)
 	_, err = db.Delete(entity)
 	if err != nil {
 		checkErr(err, "delete failed")
@@ -77,7 +77,7 @@ func DeleteContact_type(db gorp.SqlExecutor, parms martini.Params) (int, string)
 	return http.StatusNoContent, ""
 }
 
-func contact_typesToIface(v []models.Contact_type) []interface{} {
+func contact_typesToIface(v []models.DefaultStruct) []interface{} {
 	if len(v) == 0 {
 		return nil
 	}

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// User can be any struct that represents a user in my system
+// Represents the AUTHENTICATED User and it should be use throughout the Login Required areas
 type User struct {
 	Id            	int  `json:"id" db:"id"`
 	Username      	string `json:"username" db:"username"`
@@ -17,6 +17,7 @@ type User struct {
 	Authenticated 	bool   `json:"authenticated" db:"authenticated"`
 }
 
+// Represent only the user structure sent by login request
 type UserLogin struct {
 	Username      	 string `json:"username" form:"username"`
 	Password      	 string `json:"password" form:"password"`
@@ -50,10 +51,12 @@ func (u *User) Logout() {
 	u.Authenticated = false
 }
 
+// Flag used to check whether a user is authenticated or not at login required areas 
 func (u *User) IsAuthenticated() bool {
 	return u.Authenticated
 }
 
+// It uses user.Id from database since it requires unique ID as well for every single user in DB.
 func (u *User) UniqueId() interface{} {
 	return u.Id
 }
@@ -69,6 +72,7 @@ func (u *User) GetById(id interface{}) error {
 	return nil
 }
 
+// Should be called every time a successful login occurs
 func (u *User) UpdateLastLogin(){
 	u.Last_login = time.Now().String()
 	Dbm.Update(u)

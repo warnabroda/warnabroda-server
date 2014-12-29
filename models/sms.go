@@ -1,23 +1,24 @@
 package models
 
+// Represents all data required to send a SMS via MobilePronto, this struct is totally binded to the SMS sender
 type SMS struct {
       
-    CredencialKey string
+    CredencialKey string	// Credential key registered at MobilePronto
   
-    Content string
+    Content string			// SMS content
 
-    URLPath string
+    URLPath string			// MobilePronto URL used to SEND the SMS and to parse MobilePronto Response 
   
-    Scheme string    
+    Scheme string    		// http or https
   
-    Host string
+    Host string				// MobilePronto Domain
   
-    Project string
+    Project string			// Warnabroda
   
-    AuxUser string
+    AuxUser string			// dummy value, I dont know what is this for.
       
-    MobileNumber string
+    MobileNumber string		// Destination Cell Number
 
-    SendProject string
+    SendProject string		// Whether it should send the project name along with SMS or not.
 
 }

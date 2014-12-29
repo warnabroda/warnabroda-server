@@ -14,18 +14,25 @@ import (
 	"time"
 )
 
+//Public System constants
 const (
-	DbFormat   = "2006-01-02 15:04:05"
-	JsonFormat = "2006-01-02"
+	DbFormat   = "2006-01-02 15:04:05" 	//Database formatter template used by GO from date-n-time 
+	JsonFormat = "2006-01-02"			//Database formatter template used by GO from date
 )
 
+//Public System variables
 var (
-	Dbm *gorp.DbMap
+	Dbm *gorp.DbMap //Database object public available
 )
 
+// Abstracts time.Time struct into JDate
 type JDate time.Time
+
+// whenever a type convertion is needed
 type CustomTypeConverter struct{}
 
+
+// It Initializes database connection and sets the connection as public
 func init() {
 	log.Println("Opening db...")
 	var password = os.Getenv("WARNAPASS")
@@ -36,11 +43,11 @@ func init() {
 	Dbm = &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{"InnoDB", "UTF8"}}
 	Dbm.TypeConverter = CustomTypeConverter{}
 
-	Dbm.AddTableWithName(Message{}, "messages").SetKeys(true, "Id")
+	Dbm.AddTableWithName(DefaultStruct{}, "messages").SetKeys(true, "Id")
 
-	Dbm.AddTableWithName(Contact_type{}, "contact_types").SetKeys(true, "Id")
+	Dbm.AddTableWithName(DefaultStruct{}, "contact_types").SetKeys(true, "Id")
 
-	Dbm.AddTableWithName(Subject{}, "subjects").SetKeys(true, "Id")
+	Dbm.AddTableWithName(DefaultStruct{}, "subjects").SetKeys(true, "Id")
 
 	Dbm.AddTableWithName(Warning{}, "warnings").SetKeys(true, "Id")
 

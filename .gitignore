@@ -2,4 +2,4 @@
 *.swp
 *~
 node_modules
-routes/sms.go
+/routes/sms.go

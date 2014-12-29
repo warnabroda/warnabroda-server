@@ -1,7 +1,8 @@
 package routes
 
 import (
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
+	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
+	"bitbucket.org/hbtsmith/warnabrodagomartini/i18n"	
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"	
 	"github.com/martini-contrib/sessionauth"
@@ -13,12 +14,21 @@ import (
 	// "strings"
 )
 
+const (
+	SQL_LOGIN				= "SELECT * FROM users WHERE (username = :user OR email = :user) AND password = :pass "
+	MSG_LOGIN_INVALID		= "Usuário ou Senha inválidos."
+	MSG_LOGIN_REQUIRED		= "Usuário não está logado."
+	MSG_SESSION_INIT_ERROR	= "Erro ao iniciar Sessão."
+	MSG_SUCCESSFUL_LOGIN	= "Login realizado com sucesso!"
+	MSG_SUCCESSFUL_LOGOUT	= "Logout realizado com sucesso."
+)
+
 func GetUserById(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	
 	id, err := strconv.Atoi(parms["id"])	
 
 	if err != nil {
-		checkErr(err, "get failed")
+		checkErr(err, "GET USER ERROR")
 	}
 	
 	entity := UserById(id, db)
@@ -37,46 +47,52 @@ func UserById(id int, db gorp.SqlExecutor) *models.User {
 	return entity
 }
 
-func GetUserByLogin(postedUser models.UserLogin) *models.User {	
+func GetUserByLogin(postedUser models.UserLogin, db gorp.SqlExecutor) *models.User {	
 
 	user := models.User{}
 
-	models.Dbm.SelectOne(&user, "SELECT * FROM users WHERE (username = :user OR email = :user) AND password = :pass ",  
+	err := db.SelectOne(&user, SQL_LOGIN,  
 		map[string]interface{}{
 	  		"user": postedUser.Username,
 	  		"pass": postedUser.Password,
 		})
+	if err != nil{
+		return nil
+	}
 	//checkErr(err, "LOGIN FAILED MISERABLY")
 
 	return &user
 }
 
-func DoLogin(entity models.UserLogin, r *http.Request, session sessions.Session, enc Encoder, db gorp.SqlExecutor) (int, string){
+func DoLogin(entity models.UserLogin, session sessions.Session, enc Encoder, db gorp.SqlExecutor) (int, string){
 	
-	status := &models.Message{
+	status := &models.DefaultStruct{
 			Id:       http.StatusUnauthorized,
-			Name:     "Usuário ou Senha errado.",
-			Lang_key: "br",
+			Name:     MSG_LOGIN_INVALID,
+			Lang_key: i18n.BR_LANG_KEY,
 		}
 		
-	user := GetUserByLogin(entity)
+	user := GetUserByLogin(entity, db)
 		
 		
-	if user.Name == "" {
-		sessionauth.Logout(session, user)
-		session.Clear()
-		return http.StatusForbidden, Must(enc.EncodeOne(status))
-	} else {		
+	if user != nil {
+
 		err := sessionauth.AuthenticateSession(session, user)
 		if err != nil {
-			status.Name = "Erro ao iniciar Sessão."	
+			status.Name = MSG_SESSION_INIT_ERROR	
 			return http.StatusForbidden, Must(enc.EncodeOne(status))
 		}
 		user.Authenticated = true	
 		user.UpdateLastLogin()
-		status.Name = "Login realizado com sucesso!"
-		return http.StatusOK, Must(enc.EncodeOne(user))
-		
+		status.Name = MSG_SUCCESSFUL_LOGIN
+		return http.StatusOK, Must(enc.EncodeOne(user))		
+	
+	} else {		
+	
+		sessionauth.Logout(session, user)
+		session.Clear()
+		return http.StatusForbidden, Must(enc.EncodeOne(status))
+	
 	}
 
 	return http.StatusForbidden, Must(enc.EncodeOne(status))
@@ -94,20 +110,18 @@ func IsAuthenticated(enc Encoder, user sessionauth.User) (int, string) {
 
 func DoLogout(enc Encoder, session sessions.Session, user sessionauth.User, db gorp.SqlExecutor) (int, string) {
 
-	status := &models.Message{
+	status := &models.DefaultStruct{
 			Id:       http.StatusOK,
-			Name:     "Usuario não está logado.",
-			Lang_key: "br",
+			Name:     MSG_LOGIN_REQUIRED,
+			Lang_key: i18n.BR_LANG_KEY,
 		}
 
 	if user.IsAuthenticated() {
 
 		sessionauth.Logout(session, user)
 		session.Clear()
-		status.Name = "Logout Realizado com sucesso."
-
-	}
-	
+		status.Name = MSG_SUCCESSFUL_LOGOUT
+	}	
 
 	updateUser := UserById(user.UniqueId().(int), db)
 

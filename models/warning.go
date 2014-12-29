@@ -1,6 +1,6 @@
 package models
 
-
+// Struct that represents a warning request, used to log all possible data from a sending user.
 type Warning struct {
     Id int64 `json:"id"`
     

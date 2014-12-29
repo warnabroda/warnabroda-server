@@ -2,9 +2,10 @@ package routes
 
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"os"
-	"github.com/coopernurse/gorp"
+	"bitbucket.org/hbtsmith/warnabrodagomartini/i18n"
 	"github.com/go-martini/martini"
+	"github.com/coopernurse/gorp"
+	"os"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,7 +15,14 @@ import (
 )
 
 const (
-	ignore_url = "www.warnabroda.com/#/ignoreme"
+	URL_IGNOREME 						= "www.warnabroda.com/#/ignoreme"
+	MSG_TOO_MANY_IGNOREME_REQUESTS		= "Ooopa! Pra que tantas solicitações Broda? Se você possui mais de 2 contatos à bloquear por vez, entre em contato com o Warn A Broda."
+	MSG_CONFIRM_IGNOREME				= "Favor confirmar bloqueio de contato"
+	MSG_EMAIL_SUBJECT_ADD_IGNORE_LIST	= "Adicionar contato à ignore list do Warn A Broda"
+	MSG_SMS_IGNORE_CONFIRMATION_REQUEST	= "Pro Warn A Broda lhe ignorar efetivamente, " +
+										"por favor entre em: " + 
+										URL_IGNOREME + 
+										" e informe o codigo: "
 )
 
 func init(){
@@ -38,20 +46,20 @@ func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	//reads the e-mail template from a local file
 	wab_email_template := wab_root + "/models/ignoreme.html"
 	template_byte, err := ioutil.ReadFile(wab_email_template)
-	checkErr(err, "File Opening ERROR")
+	checkErr(err, "Ignore-me Email File Opening ERROR")
 	template_email_string := string(template_byte[:])
 	
 	var email_content string
 	email_content = strings.Replace(template_email_string, "{{code}}", entity.Confirmation_code, 1)
-	email_content = strings.Replace(email_content, "{{url}}", ignore_url, 2)
+	email_content = strings.Replace(email_content, "{{url}}", URL_IGNOREME, 2)
 
 	email := &models.Email{
 		TemplatePath: wab_email_template,	
 		Content: email_content, 	
-		Subject: "Adicionar contato à ignore list do Warn A Broda",		
+		Subject: MSG_EMAIL_SUBJECT_ADD_IGNORE_LIST,		
 		ToAddress: entity.Contact,
-		FromName: "Warn A Broda",
-		LangKey: "br",
+		FromName: i18n.WARN_A_BRODA,
+		LangKey: i18n.BR_LANG_KEY,
 		Async: false,
 		UseContent: true,
 		HTMLContent: true,
@@ -60,19 +68,14 @@ func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	SendMail(email, db)
 }
 
-func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
-	
-	sms_message := "Pro Warn A Broda lhe ignorar efetivamente, "
-	sms_message += "por favor entre em: "
-	sms_message += "www.warnabroda.com/#/ignoreme "
-	sms_message += "e informe o codigo: "+entity.Confirmation_code
+func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){	
 
 	sms := &models.SMS {
 		CredencialKey: os.Getenv("WARNACREDENCIAL"),  
-	    Content: sms_message,
-	    URLPath: "http://www.mpgateway.com/v_2_00/smsfollow/smsfollow.aspx?",	  
+	    Content: MSG_SMS_IGNORE_CONFIRMATION_REQUEST + entity.Confirmation_code,
+	    URLPath: i18n.URL_MAIN_MOBILE_PRONTO,	  
 	    Scheme: "http",	  
-	    Host: "www.mpgateway.com",	  
+	    Host: i18n.URL_DOMAIN_MOBILE_PRONTO,	  
 	    Project: os.Getenv("WARNAPROJECT"),	  
 	    AuxUser: "WAB",	      
 	    MobileNumber: "55"+entity.Contact,
@@ -89,17 +92,17 @@ func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 
 func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 	
-	status := &models.Message{
-			Id:       200,
-			Name:     "Favor confirmar bloqueio de contato",
-			Lang_key: "br",
+	status := &models.DefaultStruct{
+			Id:       http.StatusOK,
+			Name:     MSG_CONFIRM_IGNOREME,
+			Lang_key: i18n.BR_LANG_KEY,
 		}
 
 	if MoreThanTwoRequestByIp(db, &entity){
-		status = &models.Message{
-			Id:       403,
-			Name:     "Ooopa! Pra que tantas solicitações Broda? Se você possui mais de 2 contatos à bloquear por vez, entre em contato com o Warn A Broda.",
-			Lang_key: "br",
+		status = &models.DefaultStruct{
+			Id:       http.StatusForbidden,
+			Name:     MSG_TOO_MANY_IGNOREME_REQUESTS,
+			Lang_key: i18n.BR_LANG_KEY,
 		}
 		return http.StatusCreated, Must(enc.EncodeOne(status))		
 	} 
@@ -108,19 +111,19 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 
 	if ingnored!= nil && ingnored.Confirmed {
 
-		status = &models.Message{
-			Id:       403,
+		status = &models.DefaultStruct{
+			Id:       http.StatusForbidden,
 			Name:     "Contato Já estava na Lista de Ignorados!",
-			Lang_key: "br",
+			Lang_key: i18n.BR_LANG_KEY,
 		}
 
 		return http.StatusCreated, Must(enc.EncodeOne(status))
 
 	} else if ingnored!= nil {
-		status = &models.Message{
-			Id:       403,
+		status = &models.DefaultStruct{
+			Id:       http.StatusForbidden,
 			Name:     "Solicitações de bloqeuio expiram em 24 horas. Aguarde para solicitar novamente ou entre em contato com o Warn A Broda.",
-			Lang_key: "br",
+			Lang_key: i18n.BR_LANG_KEY,
 		}
 
 		return http.StatusCreated, Must(enc.EncodeOne(status))
@@ -150,10 +153,10 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 
 func ConfirmIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 	
-	status := &models.Message{
-			Id:       200,
+	status := &models.DefaultStruct{
+			Id:       http.StatusOK,
 			Name:     "Ignorado com Sucesso, se um dia você se arrepender, entre em contato conosco é a unica forma de voltar a participar do Warn A Broda.",
-			Lang_key: "br",
+			Lang_key: i18n.BR_LANG_KEY,
 		}
 
 	ignored := GetIgnoreContact(db, entity.Confirmation_code)
@@ -162,10 +165,10 @@ func ConfirmIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Enc
 		ignored.Confirmed = true
 		UpdateIgnoreList(ignored, db)
 	} else {
-		status = &models.Message{
-			Id:       403,
+		status = &models.DefaultStruct{
+			Id:       http.StatusForbidden,
 			Name:     "Código inválido.",
-			Lang_key: "br",
+			Lang_key: i18n.BR_LANG_KEY,
 		}
 	}
 

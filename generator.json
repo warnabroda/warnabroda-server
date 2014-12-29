@@ -18,7 +18,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "5",
 					"enumValues": [],
 					"required": false
 				}
@@ -32,7 +32,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "100",
 					"enumValues": [],
 					"required": true
 				},
@@ -41,7 +41,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "5",
 					"enumValues": [],
 					"required": false
 				}
@@ -55,7 +55,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "100",
 					"enumValues": [],
 					"required": true
 				},
@@ -64,7 +64,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "5",
 					"enumValues": [],
 					"required": false
 				}
@@ -121,7 +121,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "20",
 					"enumValues": [],
 					"required": true
 				},
@@ -130,7 +130,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "100",
 					"enumValues": [],
 					"required": true
 				},
@@ -139,7 +139,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "100",
 					"enumValues": [],
 					"required": true
 				},
@@ -148,7 +148,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "100",
 					"enumValues": [],
 					"required": true
 				},
@@ -166,14 +166,14 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "100",
 					"enumValues": [],
 					"required": true
 				},
 				{
 					"attrName": "created_date",
 					"attrType": "Date",
-					"attrImplType": "JDate",
+					"attrImplType": "string",
 					"dateConstraint": "",
 					"enumValues": [],
 					"required": true
@@ -183,14 +183,14 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "100",
 					"enumValues": [],
 					"required": false
 				},
 				{
 					"attrName": "last_modified_date",
 					"attrType": "Date",
-					"attrImplType": "JDate",
+					"attrImplType": "string",
 					"dateConstraint": "",
 					"enumValues": [],
 					"required": false
@@ -200,7 +200,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "5",
 					"enumValues": [],
 					"required": false
 				}
@@ -214,7 +214,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "100",
 					"enumValues": [],
 					"required": true
 				},
@@ -223,7 +223,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "20",
 					"enumValues": [],
 					"required": true
 				},
@@ -232,7 +232,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "100",
 					"enumValues": [],
 					"required": true
 				},
@@ -241,7 +241,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "100",
 					"enumValues": [],
 					"required": true
 				},
@@ -250,7 +250,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "100",
 					"enumValues": [],
 					"required": true
 				},
@@ -268,7 +268,7 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "100",
 					"enumValues": [],
 					"required": true
 				},
@@ -301,11 +301,79 @@
 					"attrType": "String",
 					"attrImplType": "string",
 					"minLength": "",
-					"maxLength": "",
+					"maxLength": "10",
 					"enumValues": [],
 					"required": true
 				}
 
+				
+			]
+		},
+		{
+			"name": "users",
+			"attrs": [				
+				{
+					"attrName": "username",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "100",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "email",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "150",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "password",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "name",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "150",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "last_login",
+					"attrType": "timestamp",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "100",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "user_hole",
+					"attrType": "String",
+					"attrImplType": "string",
+					"minLength": "",
+					"maxLength": "20",
+					"enumValues": [],
+					"required": true
+				},
+				{
+					"attrName": "authenticated",
+					"attrType": "Boolean",
+					"attrImplType": "bool",
+					"dateConstraint": "",
+					"enumValues": [],
+					"required": true
+				}
 				
 			]
 		}

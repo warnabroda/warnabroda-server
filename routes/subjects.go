@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var global_subjects []models.Subject
+var global_subjects []models.DefaultStruct
 
 func init(){
 	_, err := models.Dbm.Select(&global_subjects, "SELECT * FROM subjects ORDER BY Id")
@@ -20,9 +20,9 @@ func init(){
 }
 
 
-func GetRandomSubject() models.Subject {		
+func GetRandomSubject() models.DefaultStruct {		
 	
-	var subject models.Subject
+	var subject models.DefaultStruct
 
 	// r := rand.New(rand.NewSource(99))
 	rand.Seed(time.Now().UTC().UnixNano())	
@@ -39,14 +39,14 @@ func GetRandomSubject() models.Subject {
 
 	 } else {
 		
-		subject = models.Subject{0, "Um amigo(a) acaba de lhe dar um toque", "br"}
+		subject = models.DefaultStruct{0, "Um amigo(a) acaba de lhe dar um toque", "br"}
 	 }
 
 	return subject
 }
 
 func GetSubjects(enc Encoder, db gorp.SqlExecutor) (int, string) {
-	var subjects []models.Subject
+	var subjects []models.DefaultStruct
 	_, err := db.Select(&subjects, "select * from subjects order by id")
 	if err != nil {
 		checkErr(err, "select failed")
@@ -57,17 +57,17 @@ func GetSubjects(enc Encoder, db gorp.SqlExecutor) (int, string) {
 
 func GetSubject(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	id, err := strconv.Atoi(parms["id"])
-	obj, _ := db.Get(models.Subject{}, id)
+	obj, _ := db.Get(models.DefaultStruct{}, id)
 	if err != nil || obj == nil {
 		checkErr(err, "get failed")
 		// Invalid id, or does not exist
 		return http.StatusNotFound, ""
 	}
-	entity := obj.(*models.Subject)
+	entity := obj.(*models.DefaultStruct)
 	return http.StatusOK, Must(enc.EncodeOne(entity))
 }
 
-func subjectsToIface(v []models.Subject) []interface{} {
+func subjectsToIface(v []models.DefaultStruct) []interface{} {
 	if len(v) == 0 {
 		return nil
 	}
