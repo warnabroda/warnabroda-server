@@ -67,13 +67,13 @@ func init() {
 	r.Get(`/warnabroda/account/:id`, routes.GetUserById)	
 
 
-
-	store := sessions.NewCookieStore([]byte("warnasecret"))
+	//warnasecretkey
+	store := sessions.NewCookieStore([]byte("799a41cbe4de9a67eaa42acc83c76be7aa57e684"))
 	store.Options(sessions.Options{
-		MaxAge: 0,
+		MaxAge: 600,
 	})
 
-	m.Use(sessions.Sessions("my_session", store))
+	m.Use(sessions.Sessions("admin_session", store))
 	m.Use(sessionauth.SessionUser(models.GenerateAnonymousUser))
 	sessionauth.RedirectUrl = "/hq"	
 
