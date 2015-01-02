@@ -12,7 +12,7 @@ import (
 	"math/rand"
 	"strings"
 	"io/ioutil"	
-	"fmt"	
+//	"fmt"	
 )
 
 const (
@@ -252,16 +252,16 @@ func GetIgnoreContact(db gorp.SqlExecutor, id string) *models.Ignore_List {
 // Remove all requests non confirmed older than 24 hours
 func IgnoreListCleaner(){
 	sql := SQL_REMOVE_OLD_IGNOREME_REQUESTS
-	//models.Dbm.Exec(sql)
-	fmt.Println(sql)
+	models.Dbm.Exec(sql)
+	//fmt.Println(sql)
 	ticker := time.NewTicker(time.Hour)
 	quit := make(chan struct{})
 	go func() {
 	    for {
 	       select {
 	        case <- ticker.C:	        	
-	            //models.Dbm.Exec(sql)
-	        	fmt.Println(sql)
+	            models.Dbm.Exec(sql)
+	        	//fmt.Println(sql)
 	        case <- quit:
 	            ticker.Stop()
 	            return

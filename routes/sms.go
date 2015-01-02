@@ -3,16 +3,16 @@ package routes
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
 	"github.com/coopernurse/gorp"
-//	"io/ioutil"
-//	"net/http"
+	"io/ioutil"
+	"net/http"
 	"net/url"
-	"fmt"
+	//"fmt"
 )
 
 // Component to send a SMS using mobile pronto
 func SendSMS(sms *models.SMS, db gorp.SqlExecutor) (bool, string) {
 	u, err := url.Parse(sms.URLPath)
-	checkErr(err, "Ugly URL")
+	checkErr(err, "Ugly URL")	
 
 	u.Scheme = sms.Scheme
 	u.Host = sms.Host
@@ -25,15 +25,13 @@ func SendSMS(sms *models.SMS, db gorp.SqlExecutor) (bool, string) {
 	q.Set("MESSAGE", sms.Content)
 	u.RawQuery = q.Encode()
 
-	fmt.Println(u)
+	res, err := http.Get(u.String())	
+	 checkErr(err, "SMS Not Sent")
 
-	//res, err := http.Get(u.String())	
-	// checkErr(err, "SMS Not Sent")
+	robots, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	 checkErr(err, "No response from SMS Sender")
 
-	//robots, err := ioutil.ReadAll(res.Body)
-	//res.Body.Close()
-	// checkErr(err, "No response from SMS Sender")
-
-	return true, "TESTE"
-	//return err == nil, string(robots[:])
+	//return true, "TESTE"
+	return err == nil, string(robots[:])
 }
