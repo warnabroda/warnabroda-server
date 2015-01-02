@@ -1,5 +1,6 @@
 package models
 
+
 // Struct that represents a warning request, used to log all possible data from a sending user.
 type Warning struct {
     Id int64 `json:"id"`
@@ -33,5 +34,22 @@ type Warning struct {
     Last_modified_date string `json:"last_modified_date"`
   
     Lang_key string `json:"lang_key"`
+  
+}
+
+
+type Warn struct {
+    Id int64 `json:"Id" db:"id"`
+    
+    Message string `json:"Message" db:"message"`
+  
+    ContactType string `json:"ContactType" db:"contact_type"`
+  
+    Contact string `json:"Contact" db:"contact"`
+  
+    Sent bool `json:"Sent" db:"sent"`    
+  
+    CreatedDate JDate `json:"CreatedDate" db:"created_date"`
+
   
 }

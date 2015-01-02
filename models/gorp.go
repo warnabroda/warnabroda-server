@@ -62,7 +62,7 @@ func init() {
 }
 
 func (d JDate) MarshalJSON() ([]byte, error) {
-	return json.Marshal((*time.Time)(&d).Format(JsonFormat))
+	return json.Marshal((*time.Time)(&d).Format(DbFormat))
 }
 
 func (d *JDate) UnmarshalJSON(data []byte) error {
@@ -70,7 +70,7 @@ func (d *JDate) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	t, err := time.Parse(JsonFormat, s)
+	t, err := time.Parse(DbFormat, s)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (me CustomTypeConverter) FromDb(target interface{}) (gorp.CustomScanner, bo
 			t, _ := time.Parse(DbFormat, *s)
 			*st = JDate(t)
 			return nil
-		}
+		}		
 		return gorp.CustomScanner{new(string), target, binder}, true
 	}
 	return gorp.CustomScanner{}, false

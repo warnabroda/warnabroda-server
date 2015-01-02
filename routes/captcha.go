@@ -9,13 +9,19 @@ import (
 	"os"
 )
 
+const(
+	GOOGLE_CAPTCHA_URL		= "https://www.google.com/recaptcha/api/siteverify?"
+	SCHEME 					= "https"
+	HOST 					= "www.google.com"
+)
+
 // Get google's captcha response
 func CaptchaResponse(captcha models.Captcha, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
-	u, err := url.Parse("https://www.google.com/recaptcha/api/siteverify?")
+	u, err := url.Parse(GOOGLE_CAPTCHA_URL)
 	checkErr(err, "Ugly URL")	
 
-	u.Scheme = "https"
-	u.Host = "www.google.com"
+	u.Scheme = SCHEME
+	u.Host = HOST
 	q := u.Query()
 
 	q.Set("secret", os.Getenv("WARNACAPTCHA"))

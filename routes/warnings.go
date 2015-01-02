@@ -27,7 +27,6 @@ const (
 	MSG_IGNORED_USER			= "Este Broda está na Ignore List, pois não deseja receber avisos do Warn A Broda, Sorry ae."
 	MSG_EMAIL_WARNING_SENT		= "Broda já foi avisado(a) há instantes atrás. Muito Obrigado."	
 	MSG_SMS_QUOTA_EXCEEDED		= "Este número já recebeu um SMS hoje ou seu IP( {{ip}} ) já enviou a cota maxima de SMS diário."
-	SQL_WARNING_COUNT			= "SELECT COUNT(*) AS total FROM warnings WHERE Sent=true"
 	SQL_WARNING_BYID			= "SELECT * FROM warnings ORDER BY id"
 	SQL_CHECK_SENT_WARN			= " SELECT COUNT(*) FROM warnings " + 
 							  	" WHERE Id_contact_type = :id_contact_type AND Sent = true AND " + 
@@ -46,17 +45,6 @@ func GetWarnings(enc Encoder, db gorp.SqlExecutor) (int, string) {
 		return http.StatusInternalServerError, ""
 	}
 	return http.StatusOK, Must(enc.Encode(warningsToIface(warnings)...))
-}
-
-func CountWarnings(enc Encoder, db gorp.SqlExecutor) (int, string) {
-	
-	total, err := db.SelectInt(SQL_WARNING_COUNT)
-	checkErr(err, "COUNT SENT WARNINGS ERROR")
-	
-	if err != nil {
-		return http.StatusInternalServerError, ""
-	}
-	return http.StatusOK, strconv.FormatInt(total, 10)
 }
 
 func GetWarning(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {

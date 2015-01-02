@@ -29,62 +29,69 @@ func init() {
 	// Setup routes
 	r := martini.NewRouter()
 
-	r.Get(`/warnabroda/messages`, routes.GetMessages)
-	// r.Get(`/warnabroda/messages/:id`, routes.GetMessage)
-	// r.Post(`/warnabroda/messages`, binding.Json(models.Message{}), routes.AddMessage)
-	// r.Put(`/warnabroda/messages/:id`, binding.Json(models.Message{}), routes.UpdateMessage)
-	// r.Delete(`/warnabroda/messages/:id`, routes.DeleteMessage)
-
-	r.Get(`/warnabroda/contact_types`, routes.GetContact_types)
-	// r.Get(`/warnabroda/contact_types/:id`, routes.GetContact_type)
-	// r.Post(`/warnabroda/contact_types`, binding.Json(models.Contact_type{}), routes.AddContact_type)
-	// r.Put(`/warnabroda/contact_types/:id`, binding.Json(models.Contact_type{}), routes.UpdateContact_type)
-	// r.Delete(`/warnabroda/contact_types/:id`, routes.DeleteContact_type)
-
-	r.Get(`/warnabroda/subjects`, routes.GetSubjects)
-	// r.Get(`/warnabroda/subjects/:id`, routes.GetSubject)
-	// r.Post(`/warnabroda/subjects`, binding.Json(models.Subject{}), routes.AddSubject)
-	// r.Put(`/warnabroda/subjects/:id`, binding.Json(models.Subject{}), routes.UpdateSubject)
-	// r.Delete(`/warnabroda/subjects/:id`, routes.DeleteSubject)
-
-	r.Get(`/warnabroda/count-warnings`, routes.CountWarnings)
-	// r.Get(`/warnabroda/warnings`, routes.GetWarnings)
-	// r.Get(`/warnabroda/warnings/:id`, routes.GetWarning)
-	r.Post(`/warnabroda/warnings`, binding.Json(models.Warning{}), routes.AddWarning)
-	// r.Put(`/warnabroda/warnings/:id`, binding.Json(models.Warning{}), routes.UpdateWarning)
-	// r.Delete(`/warnabroda/warnings/:id`, routes.DeleteWarning)
-
-
-	// r.Get(`/warnabroda/ignore-list/:id`, routes.GetIgnoreContact)
-	r.Post(`/warnabroda/ignore-list`, binding.Json(models.Ignore_List{}), routes.AddIgnoreList)
-	r.Post(`/warnabroda/ignore-list-confirm`, binding.Json(models.Ignore_List{}), routes.ConfirmIgnoreList)
-	
-	// r.Put(`/warnabroda/ignore_list/:id`, binding.Json(models.Subject{}), routes.UpdateIgnoreList)
-	// r.Delete(`/warnabroda/ignore_list/:id`, routes.DeleteIgnoreList)
-
-	r.Post(`/warnabroda/captcha-validate`, binding.Json(models.Captcha{}), routes.CaptchaResponse)
-
-	r.Get(`/warnabroda/account/:id`, routes.GetUserById)	
-
-
 	//warnasecretkey
 	store := sessions.NewCookieStore([]byte("799a41cbe4de9a67eaa42acc83c76be7aa57e684"))
 	store.Options(sessions.Options{
-		MaxAge: 600,
+		MaxAge: 6000,
 	})
 
 	m.Use(sessions.Sessions("admin_session", store))
 	m.Use(sessionauth.SessionUser(models.GenerateAnonymousUser))
 	sessionauth.RedirectUrl = "/hq"	
 
-	r.Get(`/warnabroda/private`, routes.IsAuthenticated)
+	r.Group("/warnabroda", func (r martini.Router){
+		r.Get(`/messages`, routes.GetMessages)
+		r.Get(`/contact_types`, routes.GetContact_types)
+		r.Get(`/subjects`, routes.GetSubjects)
+		r.Get(`/count-sent-warnings`, routes.CountSentWarnings)
+		r.Post(`/warnings`, binding.Json(models.Warning{}), routes.AddWarning)
+		r.Post(`/ignore-list`, binding.Json(models.Ignore_List{}), routes.AddIgnoreList)
+		r.Post(`/ignore-list-confirm`, binding.Json(models.Ignore_List{}), routes.ConfirmIgnoreList)
+		r.Post(`/captcha-validate`, binding.Json(models.Captcha{}), routes.CaptchaResponse)
 
-	r.Get(`/warnabroda/logout`, routes.DoLogout)
+		r.Group("/hq", func (r martini.Router){
 
-	r.Get(`/warnabroda/authenticated-user`, routes.GetAuthenticatedUser)
+			r.Get(`/account/:id`, routes.GetUserById)	
+			r.Get(`/private`, routes.IsAuthenticated)
 
-	// r.Post(`/warnabroda/authentication`, strict.ContentType("application/x-www-form-urlencoded"), binding.Form(models.UserLogin{}), routes.DoLogin)	
-	r.Post(`/warnabroda/authentication`, binding.Json(models.UserLogin{}), routes.DoLogin)	
+			r.Get(`/logout`, routes.DoLogout)
+
+			r.Get(`/authenticated-user`, routes.GetAuthenticatedUser)
+
+			// r.Post(`/authentication`, strict.ContentType("application/x-www-form-urlencoded"), binding.Form(models.UserLogin{}), routes.DoLogin)	
+			r.Post(`/authentication`, binding.Json(models.UserLogin{}), routes.DoLogin)				
+			r.Get(`/count-warnings`, routes.CountWarns)
+			r.Get(`/list-warnings`, binding.Json(models.Warn{}), routes.ListWarnings)
+			
+		})
+
+	})
+
+	// r.Get(`/warnabroda/messages/:id`, routes.GetMessage)
+	// r.Post(`/warnabroda/messages`, binding.Json(models.Message{}), routes.AddMessage)
+	// r.Put(`/warnabroda/messages/:id`, binding.Json(models.Message{}), routes.UpdateMessage)
+	// r.Delete(`/warnabroda/messages/:id`, routes.DeleteMessage)
+
+	// r.Get(`/warnabroda/contact_types/:id`, routes.GetContact_type)
+	// r.Post(`/warnabroda/contact_types`, binding.Json(models.Contact_type{}), routes.AddContact_type)
+	// r.Put(`/warnabroda/contact_types/:id`, binding.Json(models.Contact_type{}), routes.UpdateContact_type)
+	// r.Delete(`/warnabroda/contact_types/:id`, routes.DeleteContact_type)
+
+	// r.Get(`/warnabroda/subjects/:id`, routes.GetSubject)
+	// r.Post(`/warnabroda/subjects`, binding.Json(models.Subject{}), routes.AddSubject)
+	// r.Put(`/warnabroda/subjects/:id`, binding.Json(models.Subject{}), routes.UpdateSubject)
+	// r.Delete(`/warnabroda/subjects/:id`, routes.DeleteSubject)
+
+	// r.Get(`/warnabroda/warnings`, routes.GetWarnings)
+	// r.Get(`/warnabroda/warnings/:id`, routes.GetWarning)
+	// r.Put(`/warnabroda/warnings/:id`, binding.Json(models.Warning{}), routes.UpdateWarning)
+	// r.Delete(`/warnabroda/warnings/:id`, routes.DeleteWarning)
+
+
+	// r.Get(`/warnabroda/ignore-list/:id`, routes.GetIgnoreContact)
+	
+	// r.Put(`/warnabroda/ignore_list/:id`, binding.Json(models.Subject{}), routes.UpdateIgnoreList)
+	// r.Delete(`/warnabroda/ignore_list/:id`, routes.DeleteIgnoreList)	
 
 	// Inject database
 	m.MapTo(models.Dbm, (*gorp.SqlExecutor)(nil))

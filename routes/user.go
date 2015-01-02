@@ -9,7 +9,7 @@ import (
 	"github.com/martini-contrib/sessions"
 	"net/http"
 	"strconv"
-	//"fmt"
+	"fmt"
 	// "encoding/json"
 	// "strings"
 )
@@ -51,15 +51,12 @@ func GetUserByLogin(postedUser models.UserLogin, db gorp.SqlExecutor) *models.Us
 
 	user := models.User{}
 
-	err := db.SelectOne(&user, SQL_LOGIN,  
+	db.SelectOne(&user, SQL_LOGIN,  
 		map[string]interface{}{
 	  		"user": postedUser.Username,
 	  		"pass": postedUser.Password,
 		})
-	if err != nil{
-		return nil
-	}
-	//checkErr(err, "LOGIN FAILED MISERABLY")
+
 
 	return &user
 }
@@ -73,9 +70,9 @@ func DoLogin(entity models.UserLogin, session sessions.Session, enc Encoder, db 
 		}
 		
 	user := GetUserByLogin(entity, db)
-		
-		
-	if user != nil {
+	fmt.Println("$$$$$ LOGin: ")	
+	fmt.Println(user)
+	if user.Name != "" {
 
 		err := sessionauth.AuthenticateSession(session, user)
 		if err != nil {
@@ -127,6 +124,9 @@ func DoLogout(enc Encoder, session sessions.Session, user sessionauth.User, db g
 
 	updateUser.Authenticated = false
 	db.Update(updateUser)
+
+	fmt.Println("##### LOGOUT: ")
+	fmt.Println(user)
 
 	return http.StatusOK,  Must(enc.EncodeOne(status))
 }
