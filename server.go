@@ -32,7 +32,7 @@ func init() {
 	//warnasecretkey
 	store := sessions.NewCookieStore([]byte("799a41cbe4de9a67eaa42acc83c76be7aa57e684"))
 	store.Options(sessions.Options{
-		MaxAge: 6000,
+		MaxAge: 3600,
 	})
 
 	m.Use(sessions.Sessions("admin_session", store))

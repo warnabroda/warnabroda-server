@@ -26,14 +26,17 @@ const (
 	MSG_WARNING_SENT_SUCCESS 	= "Broda Avisado(a)"
 	MSG_IGNORED_USER			= "Este Broda está na Ignore List, pois não deseja receber avisos do Warn A Broda, Sorry ae."
 	MSG_EMAIL_WARNING_SENT		= "Broda já foi avisado(a) há instantes atrás. Muito Obrigado."	
-	MSG_SMS_QUOTA_EXCEEDED		= "Este número já recebeu um SMS hoje ou seu IP( {{ip}} ) já enviou a cota maxima de SMS diário."
+	MSG_SMS_QUOTA_EXCEEDED		= "Este IP( {{ip}} ) já enviou a cota maxima de SMS diário."
+	MSG_SMS_SAME_WARN_BY_IP		= "Este IP( {{ip}} ) já enviou esta mesma mensagem para este Broda há menos de {{time}} horas."
+	MSG_SMS_SAME_WARN_DIFF_IP	= "Este Broda recebeu esta mesma mensagem 2 ou mais vezes há menos de {{time}} horas."
 	SQL_WARNING_BYID			= "SELECT * FROM warnings ORDER BY id"
 	SQL_CHECK_SENT_WARN			= " SELECT COUNT(*) FROM warnings " + 
-							  	" WHERE Id_contact_type = :id_contact_type AND Sent = true AND " + 
-							  	" Contact = :contact  AND "  + 
+							  	" WHERE Id_contact_type = :id_contact_type AND Sent = true AND " + 							  	
+							  	" (Contact = :contact OR Ip LIKE :ip ) AND " +
 							  	" Created_date BETWEEN :lower_str_date AND :upper_str_date AND " + 
 							  	" Id <> :id "
 )
+
 
 func GetWarnings(enc Encoder, db gorp.SqlExecutor) (int, string) {
 	
@@ -115,14 +118,14 @@ func emailSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
 	
 	now_lower 		:= time.Now().Add(-1*time.Hour)
 	now_upper 		:= time.Now().Add(1*time.Hour)
-	
-	fmt.Println(SQL_CHECK_SENT_WARN)	
+		
 	exists, err 	:= db.SelectInt(SQL_CHECK_SENT_WARN, map[string]interface{}{
 		"id_contact_type": 1,
 		"contact": warning.Contact,
 		"lower_str_date": now_lower.Format(models.DbFormat),
 		"upper_str_date": now_upper.Format(models.DbFormat),
 		"id": strconv.FormatInt(warning.Id, 10),
+		"ip": "0.0.0.0",
 		})
 	checkErr(err, "SELECT ALREADY EMAILED CONTACT ERROR")
 	
@@ -164,27 +167,84 @@ func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {
 
 func processSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct) {
 	
-	if smsSentToContact(warning, db) {
+	if isWarnSentLimitByIpOver(warning, db){
 		status.Id = http.StatusForbidden
 		status.Name = strings.Replace(MSG_SMS_QUOTA_EXCEEDED, "{{ip}}", warning.Ip, 1) 
+		status.Lang_key = i18n.BR_LANG_KEY
+	} else if isSameWarnSentByIp(warning, db) {
+		status.Id = http.StatusForbidden
+		status.Name = strings.Replace(MSG_SMS_SAME_WARN_BY_IP, "{{ip}}", warning.Ip, 1) 
+		status.Name = strings.Replace(status.Name, "{{time}}", "2", 1)
+		status.Lang_key = i18n.BR_LANG_KEY
+	} else if isSameWarnSent(warning, db) {
+		status.Id = http.StatusForbidden
+		status.Name = strings.Replace(MSG_SMS_SAME_WARN_DIFF_IP, "{{time}}", "2", 1) 		
 		status.Lang_key = i18n.BR_LANG_KEY
 	} else {
 		go sendSMSWarn(warning, db)
 	}
 }
 
-func smsSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {		
-
-	exists, err 	:= db.SelectInt(SQL_CHECK_SENT_WARN, map[string]interface{}{
-		"id_contact_type": 2,
-		"contact": warning.Contact,
-		"lower_str_date": time.Now().Format(models.JsonFormat) + " 00:00:00",
-		"upper_str_date": time.Now().Format(models.JsonFormat) + " 23:59:59",
-		"id": strconv.FormatInt(warning.Id, 10),
+func isWarnSentLimitByIpOver(warning *models.Warning, db gorp.SqlExecutor) bool{
+	exists, err 	:= db.SelectInt(buildCountWarningsSql("ip"), map[string]interface{}{
+		"id_contact_type": warning.Id_contact_type,
+		"sent": true,
+		"interval": 24,
+		"ip": "%"+warning.Ip+"%",
 		})
-	checkErr(err, "SELECT ALREADY SMSED CONTACT ERROR")
+	checkErr(err, "SELECT isWarnSentLimitByIpOver ERROR")
+	
+	return exists > 3
+}
+
+func isSameWarnSentByIp(warning *models.Warning, db gorp.SqlExecutor) bool {		
+
+	exists, err 	:= db.SelectInt(buildCountWarningsSql("same_message_by_ip"), map[string]interface{}{		
+		"sent": true,
+		"contact": warning.Contact,
+		"interval": 2,
+		"id_message": warning.Id_message,
+		"ip": warning.Ip,
+		})
+	checkErr(err, "SELECT isSameWarnSentByIp ERROR")
 	
 	return exists > 0
+}
+
+func isSameWarnSent(warning *models.Warning, db gorp.SqlExecutor) bool {		
+
+	exists, err 	:= db.SelectInt(buildCountWarningsSql("same_message"), map[string]interface{}{		
+		"sent": true,
+		"contact": warning.Contact,
+		"interval": 2,
+		"id_message": warning.Id_message,		
+		})
+	checkErr(err, "SELECT isSameWarnSent ERROR")
+	
+	return exists > 1
+}
+
+
+func buildCountWarningsSql(purpose string) string {
+
+	sql := " SELECT COUNT(*) FROM warnabroda.warnings "
+	sql += " WHERE sent = :sent AND (created_date + INTERVAL :interval HOUR) > NOW()"
+
+	switch purpose {
+	case "ip":
+		sql += " AND id_contact_type = :id_contact_type "
+		sql += " AND ip = :ip "
+	case "same_message_by_ip":
+		sql += " AND contact = :contact "
+		sql += " AND id_message = :id_message "
+		sql += " AND ip = :ip "
+	case "same_message":
+		sql += " AND contact = :contact "
+		sql += " AND id_message = :id_message "
+	}
+
+	return sql
+
 }
 
 func sendSMSWarn(entity *models.Warning, db gorp.SqlExecutor){

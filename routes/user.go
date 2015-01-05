@@ -9,7 +9,7 @@ import (
 	"github.com/martini-contrib/sessions"
 	"net/http"
 	"strconv"
-	"fmt"
+//	"fmt"
 	// "encoding/json"
 	// "strings"
 )
@@ -70,8 +70,7 @@ func DoLogin(entity models.UserLogin, session sessions.Session, enc Encoder, db 
 		}
 		
 	user := GetUserByLogin(entity, db)
-	fmt.Println("$$$$$ LOGin: ")	
-	fmt.Println(user)
+
 	if user.Name != "" {
 
 		err := sessionauth.AuthenticateSession(session, user)
@@ -124,9 +123,6 @@ func DoLogout(enc Encoder, session sessions.Session, user sessionauth.User, db g
 
 	updateUser.Authenticated = false
 	db.Update(updateUser)
-
-	fmt.Println("##### LOGOUT: ")
-	fmt.Println(user)
 
 	return http.StatusOK,  Must(enc.EncodeOne(status))
 }

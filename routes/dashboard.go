@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"strconv"
 	"github.com/coopernurse/gorp"	
-	"github.com/martini-contrib/sessionauth"
+	"github.com/martini-contrib/sessionauth"	
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
+	// "fmt"
 )
 
 const (
@@ -28,7 +29,7 @@ const (
 
 )
 
-func ListWarnings(entity models.Warn, enc Encoder, user sessionauth.User, db gorp.SqlExecutor) (int, string){
+func ListWarnings(entity models.Warn, enc Encoder, user sessionauth.User, db gorp.SqlExecutor) (int, string){	
 
 	if user.IsAuthenticated(){
 		sql := "SELECT w.id, msg.name AS message, ct.name AS contact_type, w.contact, w.sent, w.created_date FROM warnings AS w "
