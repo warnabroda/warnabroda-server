@@ -30,15 +30,10 @@ const (
 											" e informe o codigo: "
 	SQL_IN_IGNORE_LIST_BY_CONTACT			= "SELECT * FROM ignore_list WHERE Contact= :contact "
 	SQL_IN_IGNORE_LIST_BY_CODE				= "SELECT * FROM ignore_list WHERE confirmation_code= :code"
-	SQL_REMOVE_OLD_IGNOREME_REQUESTS		= "DELETE FROM ignore_list WHERE confirmed = false AND (created_date + INTERVAL 24 HOUR) < NOW()"
 	SQL_COUNT_MULTIPLE_IGNOREME_REQUESTS	= "SELECT COUNT(*) FROM ignore_list WHERE ip=? AND (created_date + INTERVAL 2 HOUR) > NOW()"
 )
 
-//Initialize all required functions when container is up.
-func init(){
 
-	IgnoreListCleaner()	
-}
 
 // Generate random A-Z letters 6 sized for ignore list confirmation purpose
 func randomString(l int ) string {
@@ -78,7 +73,11 @@ func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 		HTMLContent: true,
 	}	
 	
-	SendMail(email, db)
+	sent, response := SendMail(email, db)
+	if sent {
+		entity.Message = response
+		UpdateIgnoreList(entity, db)
+	}
 }
 
 // send a SMS with the confirmation code to confirm the ignored contact
@@ -100,7 +99,7 @@ func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 
 	if  sent {		
 		entity.Message = response
-		UpdateIgnoreList(entity, db)	
+		UpdateIgnoreList(entity, db)
 	}
 }
 
@@ -247,27 +246,6 @@ func GetIgnoreContact(db gorp.SqlExecutor, id string) *models.Ignore_List {
 	}
 	
 	return &ignored
-}
-
-// Remove all requests non confirmed older than 24 hours
-func IgnoreListCleaner(){
-	sql := SQL_REMOVE_OLD_IGNOREME_REQUESTS
-	models.Dbm.Exec(sql)
-	//fmt.Println(sql)
-	ticker := time.NewTicker(time.Hour)
-	quit := make(chan struct{})
-	go func() {
-	    for {
-	       select {
-	        case <- ticker.C:	        	
-	            models.Dbm.Exec(sql)
-	        	//fmt.Println(sql)
-	        case <- quit:
-	            ticker.Stop()
-	            return
-	        }
-	    }
-	 }()
 }
 
 // intercepts more than two requests to ignore list add.

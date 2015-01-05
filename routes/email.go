@@ -6,6 +6,7 @@ import (
 	"github.com/coopernurse/gorp"
 	"github.com/mostafah/mandrill"
 	"io/ioutil"
+	"encoding/json"
 	"os"
 	"strings"
 	"fmt"
@@ -18,12 +19,14 @@ var (
 )
 
 
+// For now all due verifications regarding send rules is done previewsly, here we just async the e-mail send of the warn
 func ProcessEmail(warning *models.Warning, db gorp.SqlExecutor){	
 	
 	go sendEmailWarn(warning, db)
 	
 }
 
+//Deploys the message to be sent into an email struct, call the service and in case of successful send, update the warn as sent.
 func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {	
 
 	//reads the e-mail template from a local file
@@ -49,7 +52,10 @@ func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {
 		HTMLContent: true,
 	}	
 	
-	if SendMail(email, db) {
+	sent, response := SendMail(email, db)
+
+	if sent {
+		entity.Message = response
 		UpdateWarningSent(entity, db)
 	} else {
 		fmt.Println("SENDING MAIL (sendEmailWarn) ERROR")
@@ -57,7 +63,7 @@ func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {
 
 }
 
-func SendMail(email *models.Email, db gorp.SqlExecutor) bool {
+func SendMail(email *models.Email, db gorp.SqlExecutor) (bool, string) {
 
 	mandrill.Key = mandrill_key
 	// you can test your API key with Ping
@@ -88,7 +94,8 @@ func SendMail(email *models.Email, db gorp.SqlExecutor) bool {
 
 	//envio assincrono = true // envio sincrono = false
 	res, err := msg.Send(email.Async)
-	checkErr(err, "File Opening ERROR")		
+	checkErr(err, "SendMail File Opening ERROR")
+	resp, _ := json.Marshal(res[0])	
 	
-	return res[0] != nil
+	return res[0] != nil, string(resp)
 }

@@ -9,12 +9,13 @@ import (
 	"net/url"
 	"strings"
 	"os"
-	//"fmt"
+	"fmt"
 )
 
 func ProcessSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct) {
-	
-	if isWarnSentLimitByIpOver(warning, db){
+	teste := isWarnSentLimitByIpOver(warning, db)
+	fmt.Println(teste)
+	if teste {
 		status.Id = http.StatusForbidden
 		status.Name = strings.Replace(MSG_SMS_QUOTA_EXCEEDED, "{{ip}}", warning.Ip, 1) 
 		status.Lang_key = i18n.BR_LANG_KEY
@@ -24,14 +25,15 @@ func ProcessSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.Def
 }
 
 func isWarnSentLimitByIpOver(warning *models.Warning, db gorp.SqlExecutor) bool{
+	
 	exists, err 	:= db.SelectInt(BuildCountWarningsSql("ip"), map[string]interface{}{
 		"id_contact_type": warning.Id_contact_type,
 		"sent": true,
 		"interval": 24,
-		"ip": "%"+warning.Ip+"%",
+		"ip": warning.Ip,
 		})
 	checkErr(err, "SELECT isWarnSentLimitByIpOver ERROR")
-	
+	fmt.Println(exists)
 	return exists > 3
 }
 

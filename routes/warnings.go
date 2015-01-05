@@ -48,6 +48,7 @@ func BuildCountWarningsSql(count_by string) string {
 	case "same_message":
 		sql += " AND contact = :contact "
 		sql += " AND id_message = :id_message "
+		sql += " AND ip <> :ip "
 	}
 
 	return sql
@@ -87,6 +88,7 @@ func UpdateWarningSent(entity *models.Warning, db gorp.SqlExecutor) {
 	checkErr(err, "ERROR UpdateWarningSent ERROR")	
 }
 
+// Receives a warning tru, inserts the request and process the warning and then respond to the interface
 func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 
 	status := &models.DefaultStruct{
@@ -122,6 +124,12 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 	return http.StatusCreated, Must(enc.EncodeOne(status))
 }
 
+// After registered in the Database, the warn is processed in order to verify:
+// - @isSameWarnSentByIp
+// - @isSameWarnSentTwiceOrMoreDifferentIp
+// - if none of above occurs the warn is processed by its type(Email, SMS, Whatsapp, etc...)
+//		- @routers.email.ProcessEmail
+//		- @routers.sms.ProcessSMS
 func processWarn(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct){
 
 	if isSameWarnSentByIp(warning, db) {
@@ -142,6 +150,7 @@ func processWarn(warning *models.Warning, db gorp.SqlExecutor, status *models.De
 	}
 }
 
+// return true if a warn, with same message and same ip, attempts to be sent, if so respond back to interface denying the service;
 func isSameWarnSentByIp(warning *models.Warning, db gorp.SqlExecutor) bool {		
 
 	exists, err 	:= db.SelectInt(BuildCountWarningsSql("same_message_by_ip"), map[string]interface{}{		
@@ -153,22 +162,25 @@ func isSameWarnSentByIp(warning *models.Warning, db gorp.SqlExecutor) bool {
 		})
 	checkErr(err, "SELECT isSameWarnSentByIp ERROR")
 	
-	return exists > 0
+	return exists >= 1
 }
 
+// return true if a warn, with same message and different ip, attempts to be sent more than twice, if so respond back to interface denying the service;
 func isSameWarnSentTwiceOrMoreDifferentIp(warning *models.Warning, db gorp.SqlExecutor) bool {		
 
 	exists, err 	:= db.SelectInt(BuildCountWarningsSql("same_message"), map[string]interface{}{		
 		"sent": true,
 		"contact": warning.Contact,
 		"interval": 2,
-		"id_message": warning.Id_message,		
+		"id_message": warning.Id_message,
+		"ip": warning.Ip,
 		})
 	checkErr(err, "SELECT isSameWarnSentTwiceOrMoreDifferentIp ERROR")
 	
-	return exists > 1
+	return exists >= 2
 }
 
+//turns the warning struct into an interface
 func warningsToIface(v []models.Warning) []interface{} {
 	if len(v) == 0 {
 		return nil
