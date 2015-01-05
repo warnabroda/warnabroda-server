@@ -2,12 +2,65 @@ package routes
 
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
+	"bitbucket.org/hbtsmith/warnabrodagomartini/i18n"
 	"github.com/coopernurse/gorp"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
+	"os"
 	//"fmt"
 )
+
+func ProcessSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct) {
+	
+	if isWarnSentLimitByIpOver(warning, db){
+		status.Id = http.StatusForbidden
+		status.Name = strings.Replace(MSG_SMS_QUOTA_EXCEEDED, "{{ip}}", warning.Ip, 1) 
+		status.Lang_key = i18n.BR_LANG_KEY
+	} else {
+		go sendSMSWarn(warning, db)
+	}
+}
+
+func isWarnSentLimitByIpOver(warning *models.Warning, db gorp.SqlExecutor) bool{
+	exists, err 	:= db.SelectInt(BuildCountWarningsSql("ip"), map[string]interface{}{
+		"id_contact_type": warning.Id_contact_type,
+		"sent": true,
+		"interval": 24,
+		"ip": "%"+warning.Ip+"%",
+		})
+	checkErr(err, "SELECT isWarnSentLimitByIpOver ERROR")
+	
+	return exists > 3
+}
+
+func sendSMSWarn(entity *models.Warning, db gorp.SqlExecutor){
+
+	message := SelectMessage(db, entity.Id_message)
+	sms_message := MSG_SMS_HEADER
+	sms_message += strings.Replace(MSG_SMS_BODY, "{{body}}", message.Name, 1)
+	sms_message += MSG_SMS_FOOTER
+
+	sms := &models.SMS {
+		CredencialKey: os.Getenv("WARNACREDENCIAL"),  
+	    Content: sms_message,
+	    URLPath: i18n.URL_MAIN_MOBILE_PRONTO,	  
+	    Scheme: "http",	  
+	    Host: i18n.URL_DOMAIN_MOBILE_PRONTO,	  
+	    Project: os.Getenv("WARNAPROJECT"),	  
+	    AuxUser: "WAB",	      
+	    MobileNumber: "55"+entity.Contact,
+	    SendProject:"N",	    
+	}
+
+	sent, response := SendSMS(sms, db)
+
+	if  sent {
+		entity.Message = response
+		UpdateWarningSent(entity, db)
+	}
+}
 
 // Component to send a SMS using mobile pronto
 func SendSMS(sms *models.SMS, db gorp.SqlExecutor) (bool, string) {

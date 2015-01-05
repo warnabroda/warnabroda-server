@@ -2,16 +2,60 @@ package routes
 
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
+	"bitbucket.org/hbtsmith/warnabrodagomartini/i18n"
 	"github.com/coopernurse/gorp"
 	"github.com/mostafah/mandrill"
 	"io/ioutil"
 	"os"
+	"strings"
+	"fmt"
 )
 
 var (	
 	mandrill_key 		= os.Getenv("MANDRILL_KEY")
 	mail_from 			= os.Getenv("WARNAEMAIL")
+	wab_root 			= os.Getenv("WARNAROOT")
 )
+
+
+func ProcessEmail(warning *models.Warning, db gorp.SqlExecutor){	
+	
+	go sendEmailWarn(warning, db)
+	
+}
+
+func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {	
+
+	//reads the e-mail template from a local file
+	wab_email_template := wab_root + "/models/warning.html"
+	template_byte, err := ioutil.ReadFile(wab_email_template)
+	checkErr(err, "Email File Opening ERROR")
+	template_email_string := string(template_byte[:])
+
+	subject := GetRandomSubject()
+	message := SelectMessage(db, entity.Id_message)
+	var email_content string
+	email_content = strings.Replace(template_email_string, "{{warning}}", message.Name, 1)
+
+	email := &models.Email{
+		TemplatePath: wab_email_template,	
+		Content: email_content, 	
+		Subject: subject.Name,		
+		ToAddress: entity.Contact,
+		FromName: i18n.WARN_A_BRODA,
+		LangKey: i18n.BR_LANG_KEY,
+		Async: false,
+		UseContent: true,
+		HTMLContent: true,
+	}	
+	
+	if SendMail(email, db) {
+		UpdateWarningSent(entity, db)
+	} else {
+		fmt.Println("SENDING MAIL (sendEmailWarn) ERROR")
+	}
+
+}
 
 func SendMail(email *models.Email, db gorp.SqlExecutor) bool {
 

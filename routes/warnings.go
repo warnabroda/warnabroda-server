@@ -6,16 +6,12 @@ import (
 	"fmt"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"	
-	"io/ioutil"
+//	"io/ioutil"
 	"net/http"
-	"os"
+//	"os"
 	"strconv"
 	"strings"
 	"time"
-)
-
-var (
-	wab_root 				= os.Getenv("WARNAROOT")
 )
 
 const (
@@ -24,8 +20,7 @@ const (
 	MSG_SMS_BODY				= "Você {{body}}."
 	MSG_SMS_FOOTER				= "Warn A Broda você também: www.warnabroda.com"
 	MSG_WARNING_SENT_SUCCESS 	= "Broda Avisado(a)"
-	MSG_IGNORED_USER			= "Este Broda está na Ignore List, pois não deseja receber avisos do Warn A Broda, Sorry ae."
-	MSG_EMAIL_WARNING_SENT		= "Broda já foi avisado(a) há instantes atrás. Muito Obrigado."	
+	MSG_IGNORED_USER			= "Este Broda está na Ignore List, pois não deseja receber avisos do Warn A Broda, Sorry ae."	
 	MSG_SMS_QUOTA_EXCEEDED		= "Este IP( {{ip}} ) já enviou a cota maxima de SMS diário."
 	MSG_SMS_SAME_WARN_BY_IP		= "Este IP( {{ip}} ) já enviou esta mesma mensagem para este Broda há menos de {{time}} horas."
 	MSG_SMS_SAME_WARN_DIFF_IP	= "Este Broda recebeu esta mesma mensagem 2 ou mais vezes há menos de {{time}} horas."
@@ -37,6 +32,27 @@ const (
 							  	" Id <> :id "
 )
 
+func BuildCountWarningsSql(count_by string) string {
+
+	sql := " SELECT COUNT(*) FROM warnabroda.warnings "
+	sql += " WHERE sent = :sent AND (created_date + INTERVAL :interval HOUR) > NOW()"
+
+	switch count_by {
+	case "ip":
+		sql += " AND id_contact_type = :id_contact_type "
+		sql += " AND ip = :ip "
+	case "same_message_by_ip":
+		sql += " AND contact = :contact "
+		sql += " AND id_message = :id_message "
+		sql += " AND ip = :ip "
+	case "same_message":
+		sql += " AND contact = :contact "
+		sql += " AND id_message = :id_message "
+	}
+
+	return sql
+
+}
 
 func GetWarnings(enc Encoder, db gorp.SqlExecutor) (int, string) {
 	
@@ -62,6 +78,13 @@ func GetWarning(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, st
 
 	entity := obj.(*models.Warning)
 	return http.StatusOK, Must(enc.EncodeOne(entity))
+}
+
+func UpdateWarningSent(entity *models.Warning, db gorp.SqlExecutor) {
+	entity.Sent = true
+	entity.Last_modified_date = time.Now().String()
+	_, err := db.Update(entity)
+	checkErr(err, "ERROR UpdateWarningSent ERROR")	
 }
 
 func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
@@ -93,113 +116,35 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 			Lang_key: i18n.BR_LANG_KEY,
 		}
 	} else {
-		if entity.Id_contact_type == 1 {
-			processEmail(&entity, db, status)
-		} else if entity.Id_contact_type == 2 {
-			processSMS(&entity, db, status)
-		}
+		processWarn(&entity, db, status)
 	}
 
 	return http.StatusCreated, Must(enc.EncodeOne(status))
 }
 
-func processEmail(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct){	
+func processWarn(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct){
 
-	if emailSentToContact(warning, db) {
-		status.Id = http.StatusForbidden
-		status.Name = MSG_EMAIL_WARNING_SENT
-		status.Lang_key = i18n.BR_LANG_KEY
-	} else {
-		go sendEmailWarn(warning, db)
-	}
-}
-
-func emailSentToContact(warning *models.Warning, db gorp.SqlExecutor) bool {
-	
-	now_lower 		:= time.Now().Add(-1*time.Hour)
-	now_upper 		:= time.Now().Add(1*time.Hour)
-		
-	exists, err 	:= db.SelectInt(SQL_CHECK_SENT_WARN, map[string]interface{}{
-		"id_contact_type": 1,
-		"contact": warning.Contact,
-		"lower_str_date": now_lower.Format(models.DbFormat),
-		"upper_str_date": now_upper.Format(models.DbFormat),
-		"id": strconv.FormatInt(warning.Id, 10),
-		"ip": "0.0.0.0",
-		})
-	checkErr(err, "SELECT ALREADY EMAILED CONTACT ERROR")
-	
-	return exists > 0
-}
-
-func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {	
-
-	//reads the e-mail template from a local file
-	wab_email_template := wab_root + "/models/warning.html"
-	template_byte, err := ioutil.ReadFile(wab_email_template)
-	checkErr(err, "Email File Opening ERROR")
-	template_email_string := string(template_byte[:])
-
-	subject := GetRandomSubject()
-	message := SelectMessage(db, entity.Id_message)
-	var email_content string
-	email_content = strings.Replace(template_email_string, "{{warning}}", message.Name, 1)
-
-	email := &models.Email{
-		TemplatePath: wab_email_template,	
-		Content: email_content, 	
-		Subject: subject.Name,		
-		ToAddress: entity.Contact,
-		FromName: i18n.WARN_A_BRODA,
-		LangKey: i18n.BR_LANG_KEY,
-		Async: false,
-		UseContent: true,
-		HTMLContent: true,
-	}	
-	
-	if SendMail(email, db) {
-		UpdateWarningSent(entity, db)
-	} else {
-		fmt.Println("SENDING MAIL ERROR")
-	}
-
-}
-
-func processSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct) {
-	
-	if isWarnSentLimitByIpOver(warning, db){
-		status.Id = http.StatusForbidden
-		status.Name = strings.Replace(MSG_SMS_QUOTA_EXCEEDED, "{{ip}}", warning.Ip, 1) 
-		status.Lang_key = i18n.BR_LANG_KEY
-	} else if isSameWarnSentByIp(warning, db) {
+	if isSameWarnSentByIp(warning, db) {
 		status.Id = http.StatusForbidden
 		status.Name = strings.Replace(MSG_SMS_SAME_WARN_BY_IP, "{{ip}}", warning.Ip, 1) 
 		status.Name = strings.Replace(status.Name, "{{time}}", "2", 1)
 		status.Lang_key = i18n.BR_LANG_KEY
-	} else if isSameWarnSent(warning, db) {
+	} else if isSameWarnSentTwiceOrMoreDifferentIp(warning, db) {
 		status.Id = http.StatusForbidden
 		status.Name = strings.Replace(MSG_SMS_SAME_WARN_DIFF_IP, "{{time}}", "2", 1) 		
 		status.Lang_key = i18n.BR_LANG_KEY
 	} else {
-		go sendSMSWarn(warning, db)
+		if warning.Id_contact_type == 1 {
+			ProcessEmail(warning, db)
+		} else if warning.Id_contact_type == 2 {
+			ProcessSMS(warning, db, status)
+		}
 	}
-}
-
-func isWarnSentLimitByIpOver(warning *models.Warning, db gorp.SqlExecutor) bool{
-	exists, err 	:= db.SelectInt(buildCountWarningsSql("ip"), map[string]interface{}{
-		"id_contact_type": warning.Id_contact_type,
-		"sent": true,
-		"interval": 24,
-		"ip": "%"+warning.Ip+"%",
-		})
-	checkErr(err, "SELECT isWarnSentLimitByIpOver ERROR")
-	
-	return exists > 3
 }
 
 func isSameWarnSentByIp(warning *models.Warning, db gorp.SqlExecutor) bool {		
 
-	exists, err 	:= db.SelectInt(buildCountWarningsSql("same_message_by_ip"), map[string]interface{}{		
+	exists, err 	:= db.SelectInt(BuildCountWarningsSql("same_message_by_ip"), map[string]interface{}{		
 		"sent": true,
 		"contact": warning.Contact,
 		"interval": 2,
@@ -211,74 +156,17 @@ func isSameWarnSentByIp(warning *models.Warning, db gorp.SqlExecutor) bool {
 	return exists > 0
 }
 
-func isSameWarnSent(warning *models.Warning, db gorp.SqlExecutor) bool {		
+func isSameWarnSentTwiceOrMoreDifferentIp(warning *models.Warning, db gorp.SqlExecutor) bool {		
 
-	exists, err 	:= db.SelectInt(buildCountWarningsSql("same_message"), map[string]interface{}{		
+	exists, err 	:= db.SelectInt(BuildCountWarningsSql("same_message"), map[string]interface{}{		
 		"sent": true,
 		"contact": warning.Contact,
 		"interval": 2,
 		"id_message": warning.Id_message,		
 		})
-	checkErr(err, "SELECT isSameWarnSent ERROR")
+	checkErr(err, "SELECT isSameWarnSentTwiceOrMoreDifferentIp ERROR")
 	
 	return exists > 1
-}
-
-
-func buildCountWarningsSql(purpose string) string {
-
-	sql := " SELECT COUNT(*) FROM warnabroda.warnings "
-	sql += " WHERE sent = :sent AND (created_date + INTERVAL :interval HOUR) > NOW()"
-
-	switch purpose {
-	case "ip":
-		sql += " AND id_contact_type = :id_contact_type "
-		sql += " AND ip = :ip "
-	case "same_message_by_ip":
-		sql += " AND contact = :contact "
-		sql += " AND id_message = :id_message "
-		sql += " AND ip = :ip "
-	case "same_message":
-		sql += " AND contact = :contact "
-		sql += " AND id_message = :id_message "
-	}
-
-	return sql
-
-}
-
-func sendSMSWarn(entity *models.Warning, db gorp.SqlExecutor){
-
-	message := SelectMessage(db, entity.Id_message)
-	sms_message := MSG_SMS_HEADER
-	sms_message += strings.Replace(MSG_SMS_BODY, "{{body}}", message.Name, 1)
-	sms_message += MSG_SMS_FOOTER
-
-	sms := &models.SMS {
-		CredencialKey: os.Getenv("WARNACREDENCIAL"),  
-	    Content: sms_message,
-	    URLPath: i18n.URL_MAIN_MOBILE_PRONTO,	  
-	    Scheme: "http",	  
-	    Host: i18n.URL_DOMAIN_MOBILE_PRONTO,	  
-	    Project: os.Getenv("WARNAPROJECT"),	  
-	    AuxUser: "WAB",	      
-	    MobileNumber: "55"+entity.Contact,
-	    SendProject:"N",	    
-	}
-
-	sent, response := SendSMS(sms, db)
-
-	if  sent {
-		entity.Message = response
-		UpdateWarningSent(entity, db)
-	}
-}
-
-func UpdateWarningSent(entity *models.Warning, db gorp.SqlExecutor) {
-	entity.Sent = true
-	entity.Last_modified_date = time.Now().String()
-	_, err := db.Update(entity)
-	checkErr(err, "WARNING UPDATE ERROR")	
 }
 
 func warningsToIface(v []models.Warning) []interface{} {
