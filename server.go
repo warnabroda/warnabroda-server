@@ -40,7 +40,7 @@ func init() {
 	sessionauth.RedirectUrl = "/hq"	
 
 	r.Group("/warnabroda", func (r martini.Router){
-		r.Get(`/messages`, routes.GetMessages)
+		r.Get(`/messages/:lang_key`, routes.GetMessages)
 		r.Get(`/contact_types`, routes.GetContact_types)
 		r.Get(`/subjects`, routes.GetSubjects)
 		r.Get(`/count-sent-warnings`, routes.CountSentWarnings)

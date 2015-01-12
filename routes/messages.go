@@ -9,9 +9,10 @@ import (
 	"strconv"
 )
 
-func GetMessages(enc Encoder, db gorp.SqlExecutor) (int, string) {
-	var messages []models.DefaultStruct
-	_, err := db.Select(&messages, "SELECT * FROM messages ORDER BY name")
+func GetMessages(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
+	var messages []models.DefaultStruct	
+	lang_key := parms["lang_key"]
+	_, err := db.Select(&messages, "SELECT * FROM messages WHERE lang_key=? ORDER BY name", lang_key)
 	if err != nil {
 		checkErr(err, "select failed")
 		return http.StatusInternalServerError, ""
