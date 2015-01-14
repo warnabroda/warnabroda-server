@@ -15,9 +15,7 @@ import (
 //	"fmt"	
 )
 
-const (
-	URL_IGNOREME 							= "www.warnabroda.com/#/ignoreme"
-	
+const (	
 	SQL_IN_IGNORE_LIST_BY_CONTACT			= "SELECT * FROM ignore_list WHERE Contact= :contact "
 	SQL_IN_IGNORE_LIST_BY_CODE				= "SELECT * FROM ignore_list WHERE confirmation_code= :code"
 	SQL_COUNT_MULTIPLE_IGNOREME_REQUESTS	= "SELECT COUNT(*) FROM ignore_list WHERE ip=? AND (created_date + INTERVAL 2 HOUR) > NOW()"
@@ -42,14 +40,16 @@ func randInt(min int, max int) int {
 // opens the template, parse the variables sets the email struct and Send the confirmation code to confirm the ignored contact.
 func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	//reads the e-mail template from a local file
-	wab_email_template := wab_root + "/models/ignoreme.html"
+	wab_email_template := wab_root + "/models/ignoreme_"+entity.Lang_key+".html"
 	template_byte, err := ioutil.ReadFile(wab_email_template)
 	checkErr(err, "Ignore-me Email File Opening ERROR")
 	template_email_string := string(template_byte[:])
 	
 	var email_content string
 	email_content = strings.Replace(template_email_string, "{{code}}", entity.Confirmation_code, 1)
-	email_content = strings.Replace(email_content, "{{url}}", URL_IGNOREME, 2)
+	email_content = strings.Replace(email_content, "{{url_ignoreme}}", models.URL_IGNOREME, 2)
+	email_content = strings.Replace(email_content, "{{url_contacus}}", models.URL_CONTACT_US, 1)
+	email_content = strings.Replace(email_content, "{{email}}", models.EMAIL_WARNABRODA, 2)
 
 	email := &models.Email{
 		TemplatePath: wab_email_template,	

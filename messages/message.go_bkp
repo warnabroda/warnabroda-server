@@ -17,11 +17,11 @@ func main(){
 	tPtBr, _ := f.GetTranslator("pt-br")
 
 	// performs 2 translations, one with a substitution
-	t1, _ := tEn.Translate("MSG_WARNING_SENT_SUCCESS", map[string]string{})
+	t1, _ := tEn.Translate("MSG_SMS_IGNORE_CONFIRMATION_REQUEST", map[string]string{})
 	t2, _ := tEn.Translate("WELCOME_USER", map[string]string{"user": "Mother Goose"})
 
 	// performs 2 translations, one with a substitution
-	t3, _ := tPtBr.Translate("MSG_WARNING_SENT_SUCCESS", map[string]string{})
+	t3, _ := tPtBr.Translate("MSG_SMS_IGNORE_CONFIRMATION_REQUEST", map[string]string{})
 	t4, _ := tPtBr.Translate("WELCOME_USER", map[string]string{"user": "Herbert Smith"})	
 
 	fmt.Printf("Basic Translation : %s\n", t1)

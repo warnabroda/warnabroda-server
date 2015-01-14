@@ -11,45 +11,40 @@ import (
 	"time"
 )
 
-var global_subjects []models.DefaultStruct
-
 const (
-	SQL_SELECT_SUBJECTS_BY_ID		= "SELECT * FROM subjects ORDER BY Id"	
+	SQL_SELECT_SUBJECTS_BY_ID 		= "SELECT * FROM subjects ORDER BY Id"	
 	SQL_SELECT_SUBJECTS_BY_LANG_KEY	= "SELECT * FROM subjects WHERE lang_key = ? ORDER BY Id"	
 )
 
-func init(){
-	_, err := models.Dbm.Select(&global_subjects, SQL_SELECT_SUBJECTS_BY_ID)
-	if err != nil {
-		checkErr(err, "SELECT ERROR")
-	} 
-}
+func GetSubjectsByLangKey(lang_key string) []models.DefaultStruct{
 
-func GetSubjectsByLangKey(lang_key string) {
-	_, err := models.Dbm.Select(&global_subjects, SQL_SELECT_SUBJECTS_BY_LANG_KEY, lang_key)
+	var subjects []models.DefaultStruct
+	_, err := models.Dbm.Select(&subjects, SQL_SELECT_SUBJECTS_BY_LANG_KEY, lang_key)
 	if err != nil {
 		checkErr(err, "SELECT ERROR")
 	} 
+
+	return subjects
 }
 
 // Get a random subject from the previews loaded upon containers startup
 func GetRandomSubject(lang_key string) models.DefaultStruct {		
 	
-	var subject models.DefaultStruct
+	 var subject models.DefaultStruct
 
-	GetSubjectsByLangKey(lang_key)
+	subjects := GetSubjectsByLangKey(lang_key)
 
 	// r := rand.New(rand.NewSource(99))
 	rand.Seed(time.Now().UTC().UnixNano())	
 	
-	 if len(global_subjects) > 0 {
+	 if len(subjects) > 0 {
 				
-	 	var index = rand.Intn(len(global_subjects))
+	 	var index = rand.Intn(len(subjects))
 		
-	 	if index < len(global_subjects) {
-	 		subject = global_subjects[index]
+	 	if index < len(subjects) {
+	 		subject = subjects[index]
 	 	} else {
-	 		subject = global_subjects[0]
+	 		subject = subjects[0]
 	 	}
 
 	 } else {

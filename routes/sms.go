@@ -33,7 +33,7 @@ func isWarnSentLimitByIpOver(warning *models.Warning, db gorp.SqlExecutor) bool{
 		"ip": warning.Ip,
 		})
 	checkErr(err, "SELECT isWarnSentLimitByIpOver ERROR")
-	fmt.Println(exists)
+	
 	return exists > 3
 }
 
@@ -79,13 +79,13 @@ func SendSMS(sms *models.SMS, db gorp.SqlExecutor) (bool, string) {
 	q.Set("MESSAGE", sms.Content)
 	u.RawQuery = q.Encode()
 
+	fmt.Println(u.String())
 	res, err := http.Get(u.String())	
 	 checkErr(err, "SMS Not Sent")
 
 	robots, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	 checkErr(err, "No response from SMS Sender")
-
-	//return true, "TESTE"
+	
 	return err == nil, string(robots[:])
 }
