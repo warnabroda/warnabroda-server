@@ -2,7 +2,6 @@ package routes
 
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"bitbucket.org/hbtsmith/warnabrodagomartini/i18n"
 	"github.com/coopernurse/gorp"
 	"github.com/mostafah/mandrill"
 	"io/ioutil"
@@ -35,7 +34,7 @@ func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {
 	checkErr(err, "Email File Opening ERROR")
 	template_email_string := string(template_byte[:])
 
-	subject := GetRandomSubject()
+	subject := GetRandomSubject(entity.Lang_key)
 	message := SelectMessage(db, entity.Id_message)
 	var email_content string
 	email_content = strings.Replace(template_email_string, "{{warning}}", message.Name, 1)
@@ -45,8 +44,8 @@ func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {
 		Content: email_content, 	
 		Subject: subject.Name,		
 		ToAddress: entity.Contact,
-		FromName: i18n.WARN_A_BRODA,
-		LangKey: i18n.BR_LANG_KEY,
+		FromName: models.WARN_A_BRODA,
+		LangKey: entity.Lang_key,
 		Async: false,
 		UseContent: true,
 		HTMLContent: true,

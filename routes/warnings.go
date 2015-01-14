@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"bitbucket.org/hbtsmith/warnabrodagomartini/i18n"
+	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
+	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
 	"fmt"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"	
@@ -16,14 +16,6 @@ import (
 
 const (
 	
-	MSG_SMS_HEADER				= "Ola Broda, "
-	MSG_SMS_BODY				= "Você {{body}}."
-	MSG_SMS_FOOTER				= "Warn A Broda você também: www.warnabroda.com"
-	MSG_WARNING_SENT_SUCCESS 	= "Broda Avisado(a)"
-	MSG_IGNORED_USER			= "Este Broda está na Ignore List, pois não deseja receber avisos do Warn A Broda, Sorry ae."	
-	MSG_SMS_QUOTA_EXCEEDED		= "Este IP( {{ip}} ) já enviou a cota maxima de SMS diário."
-	MSG_SMS_SAME_WARN_BY_IP		= "Este IP( {{ip}} ) já enviou esta mesma mensagem para este Broda há menos de {{time}} horas."
-	MSG_SMS_SAME_WARN_DIFF_IP	= "Este Broda recebeu esta mesma mensagem 2 ou mais vezes há menos de {{time}} horas."
 	SQL_WARNING_BYID			= "SELECT * FROM warnings ORDER BY id"
 	SQL_CHECK_SENT_WARN			= " SELECT COUNT(*) FROM warnings " + 
 							  	" WHERE Id_contact_type = :id_contact_type AND Sent = true AND " + 							  	
@@ -91,16 +83,18 @@ func UpdateWarningSent(entity *models.Warning, db gorp.SqlExecutor) {
 // Receives a warning tru, inserts the request and process the warning and then respond to the interface
 func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 
+	
 	status := &models.DefaultStruct{
 		Id:       http.StatusOK,
-		Name:     MSG_WARNING_SENT_SUCCESS,
-		Lang_key: i18n.BR_LANG_KEY,
+		Name:     messages.GetLocaleMessage(entity.Lang_key,"MSG_WARNING_SENT_SUCCESS"),
+		Lang_key: entity.Lang_key,
 	}
+	
 
 	entity.Sent = false
 	entity.Created_by = "system"
 	entity.Created_date = time.Now().String()
-	entity.Lang_key = i18n.BR_LANG_KEY
+	
 
 	err := db.Insert(&entity)
 	checkErr(err, "INSERT WARNING ERROR")
@@ -114,8 +108,8 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 	if ingnored!= nil && ingnored.Confirmed {
 		status = &models.DefaultStruct{
 			Id:       http.StatusForbidden,
-			Name:     MSG_IGNORED_USER,
-			Lang_key: i18n.BR_LANG_KEY,
+			Name:     messages.GetLocaleMessage(entity.Lang_key, "MSG_IGNORED_USER"),
+			Lang_key: entity.Lang_key,
 		}
 	} else {
 		processWarn(&entity, db, status)
@@ -132,15 +126,14 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 //		- @routers.sms.ProcessSMS
 func processWarn(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct){
 
+	status.Lang_key = warning.Lang_key
 	if isSameWarnSentByIp(warning, db) {
 		status.Id = http.StatusForbidden
-		status.Name = strings.Replace(MSG_SMS_SAME_WARN_BY_IP, "{{ip}}", warning.Ip, 1) 
+		status.Name = strings.Replace(messages.GetLocaleMessage(warning.Lang_key, "MSG_SMS_SAME_WARN_BY_IP"), "{{ip}}", warning.Ip, 1) 
 		status.Name = strings.Replace(status.Name, "{{time}}", "2", 1)
-		status.Lang_key = i18n.BR_LANG_KEY
 	} else if isSameWarnSentTwiceOrMoreDifferentIp(warning, db) {
 		status.Id = http.StatusForbidden
-		status.Name = strings.Replace(MSG_SMS_SAME_WARN_DIFF_IP, "{{time}}", "2", 1) 		
-		status.Lang_key = i18n.BR_LANG_KEY
+		status.Name = strings.Replace(messages.GetLocaleMessage(warning.Lang_key, "MSG_SMS_SAME_WARN_DIFF_IP"), "{{time}}", "2", 1)				
 	} else {
 		if warning.Id_contact_type == 1 {
 			ProcessEmail(warning, db)

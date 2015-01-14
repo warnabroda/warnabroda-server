@@ -2,7 +2,7 @@ package routes
 
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"bitbucket.org/hbtsmith/warnabrodagomartini/i18n"
+	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"	
 	"github.com/coopernurse/gorp"
 	"io/ioutil"
 	"net/http"
@@ -13,12 +13,12 @@ import (
 )
 
 func ProcessSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct) {
-	teste := isWarnSentLimitByIpOver(warning, db)
-	fmt.Println(teste)
-	if teste {
+	
+	
+	if isWarnSentLimitByIpOver(warning, db) {
 		status.Id = http.StatusForbidden
-		status.Name = strings.Replace(MSG_SMS_QUOTA_EXCEEDED, "{{ip}}", warning.Ip, 1) 
-		status.Lang_key = i18n.BR_LANG_KEY
+		status.Name = strings.Replace(messages.GetLocaleMessage(warning.Lang_key,"MSG_SMS_QUOTA_EXCEEDED"), "{{ip}}", warning.Ip, 1) 
+		status.Lang_key = warning.Lang_key
 	} else {
 		go sendSMSWarn(warning, db)
 	}
@@ -40,16 +40,15 @@ func isWarnSentLimitByIpOver(warning *models.Warning, db gorp.SqlExecutor) bool{
 func sendSMSWarn(entity *models.Warning, db gorp.SqlExecutor){
 
 	message := SelectMessage(db, entity.Id_message)
-	sms_message := MSG_SMS_HEADER
-	sms_message += strings.Replace(MSG_SMS_BODY, "{{body}}", message.Name, 1)
-	sms_message += MSG_SMS_FOOTER
+	sms_message := strings.Replace(messages.GetLocaleMessage(entity.Lang_key,"MSG_SMS_BODY"), "{{body}}", message.Name, 1)	
+	sms_message += messages.GetLocaleMessage(entity.Lang_key,"MSG_SMS_FOOTER")
 
 	sms := &models.SMS {
 		CredencialKey: os.Getenv("WARNACREDENCIAL"),  
 	    Content: sms_message,
-	    URLPath: i18n.URL_MAIN_MOBILE_PRONTO,	  
+	    URLPath: models.URL_MAIN_MOBILE_PRONTO,	  
 	    Scheme: "http",	  
-	    Host: i18n.URL_DOMAIN_MOBILE_PRONTO,	  
+	    Host: models.URL_DOMAIN_MOBILE_PRONTO,	  
 	    Project: os.Getenv("WARNAPROJECT"),	  
 	    AuxUser: "WAB",	      
 	    MobileNumber: "55"+entity.Contact,

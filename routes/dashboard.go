@@ -25,7 +25,8 @@ const (
 									"(SELECT COUNT(*) FROM warnabroda.ignore_list WHERE confirmed = true  AND contact LIKE '%@%') AS ConfirmedByEmail, " +
 									"(SELECT COUNT(*) FROM warnabroda.ignore_list WHERE confirmed = false AND contact LIKE '%@%') AS UnconfirmedByEmail, " +
 									"(SELECT COUNT(*) FROM warnabroda.ignore_list WHERE confirmed = true  AND contact NOT LIKE '%@%') AS ConfirmedBySms, " +
-									"(SELECT COUNT(*) FROM warnabroda.ignore_list WHERE confirmed = false AND contact NOT LIKE '%@%') AS UnconfirmedBySms "
+									"(SELECT COUNT(*) FROM warnabroda.ignore_list WHERE confirmed = false AND contact NOT LIKE '%@%') AS UnconfirmedBySms, " +
+									"(SELECT COUNT(DISTINCT(contact)) FROM warnabroda.warnings) AS UniqueContacts "
 
 )
 

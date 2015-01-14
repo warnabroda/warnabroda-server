@@ -2,7 +2,7 @@ package routes
 
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"bitbucket.org/hbtsmith/warnabrodagomartini/i18n"
+	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
 	"github.com/go-martini/martini"
 	"github.com/coopernurse/gorp"
 	"os"
@@ -17,17 +17,7 @@ import (
 
 const (
 	URL_IGNOREME 							= "www.warnabroda.com/#/ignoreme"
-	MSG_IGNOREME_CODE_INVALID				= "Código inválido."
-	MSG_IGNORED_SUCCESSFUL					= "Ignorado com Sucesso, se um dia você se arrepender, entre em contato conosco é a unica forma de voltar a participar do Warn A Broda."
-	MSG_CONTACT_ALREADY_IGNORED				= "Contato Já estava na Lista de Ignorados!"
-	MSG_IGNORE_REQUEST_EXISTS				= "Solicitações de bloqeuio expiram em 24 horas. Aguarde para solicitar novamente ou entre em contato com o Warn A Broda."
-	MSG_TOO_MANY_IGNOREME_REQUESTS			= "Ooopa! Pra que tantas solicitações Broda? Se você possui mais de 2 contatos à bloquear por vez, entre em contato com o Warn A Broda."
-	MSG_CONFIRM_IGNOREME					= "Favor confirmar bloqueio de contato"
-	MSG_EMAIL_SUBJECT_ADD_IGNORE_LIST		= "Adicionar contato à ignore list do Warn A Broda"
-	MSG_SMS_IGNORE_CONFIRMATION_REQUEST		= "Pro Warn A Broda lhe ignorar efetivamente, " +
-											"por favor entre em: " + 
-											URL_IGNOREME + 
-											" e informe o codigo: "
+	
 	SQL_IN_IGNORE_LIST_BY_CONTACT			= "SELECT * FROM ignore_list WHERE Contact= :contact "
 	SQL_IN_IGNORE_LIST_BY_CODE				= "SELECT * FROM ignore_list WHERE confirmation_code= :code"
 	SQL_COUNT_MULTIPLE_IGNOREME_REQUESTS	= "SELECT COUNT(*) FROM ignore_list WHERE ip=? AND (created_date + INTERVAL 2 HOUR) > NOW()"
@@ -64,10 +54,10 @@ func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	email := &models.Email{
 		TemplatePath: wab_email_template,	
 		Content: email_content, 	
-		Subject: MSG_EMAIL_SUBJECT_ADD_IGNORE_LIST,		
+		Subject: messages.GetLocaleMessage(entity.Lang_key,"MSG_EMAIL_SUBJECT_ADD_IGNORE_LIST"),		
 		ToAddress: entity.Contact,
-		FromName: i18n.WARN_A_BRODA,
-		LangKey: i18n.BR_LANG_KEY,
+		FromName: models.WARN_A_BRODA,
+		LangKey: entity.Lang_key,
 		Async: false,
 		UseContent: true,
 		HTMLContent: true,
@@ -85,10 +75,10 @@ func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 
 	sms := &models.SMS {
 		CredencialKey: os.Getenv("WARNACREDENCIAL"),  
-	    Content: MSG_SMS_IGNORE_CONFIRMATION_REQUEST + entity.Confirmation_code,
-	    URLPath: i18n.URL_MAIN_MOBILE_PRONTO,	  
+	    Content: strings.Replace(messages.GetLocaleMessage(entity.Lang_key,"MSG_SMS_IGNORE_CONFIRMATION_REQUEST"), "{{url}}", entity.Confirmation_code, 1),
+	    URLPath: models.URL_MAIN_MOBILE_PRONTO,	  
 	    Scheme: "http",	  
-	    Host: i18n.URL_DOMAIN_MOBILE_PRONTO,	  
+	    Host: models.URL_DOMAIN_MOBILE_PRONTO,	  
 	    Project: os.Getenv("WARNAPROJECT"),	  
 	    AuxUser: "WAB",	      
 	    MobileNumber: "55"+entity.Contact,
@@ -108,15 +98,15 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 	
 	status := &models.DefaultStruct{
 			Id:       http.StatusOK,
-			Name:     MSG_CONFIRM_IGNOREME,
-			Lang_key: i18n.BR_LANG_KEY,
+			Name:     messages.GetLocaleMessage(entity.Lang_key,"MSG_CONFIRM_IGNOREME"),
+			Lang_key: entity.Lang_key,
 		}
 
 	if MoreThanTwoRequestByIp(db, &entity){
 		status = &models.DefaultStruct{
 			Id:       http.StatusForbidden,
-			Name:     MSG_TOO_MANY_IGNOREME_REQUESTS,
-			Lang_key: i18n.BR_LANG_KEY,
+			Name:     messages.GetLocaleMessage(entity.Lang_key,"MSG_TOO_MANY_IGNOREME_REQUESTS"),
+			Lang_key: entity.Lang_key,
 		}
 		return http.StatusCreated, Must(enc.EncodeOne(status))		
 	} 
@@ -127,8 +117,8 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 
 		status = &models.DefaultStruct{
 			Id:       http.StatusForbidden,
-			Name:     MSG_CONTACT_ALREADY_IGNORED,
-			Lang_key: i18n.BR_LANG_KEY,
+			Name:     messages.GetLocaleMessage(entity.Lang_key,"MSG_CONTACT_ALREADY_IGNORED"),
+			Lang_key: entity.Lang_key,
 		}
 
 		return http.StatusCreated, Must(enc.EncodeOne(status))
@@ -136,8 +126,8 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 	} else if ingnored!= nil {
 		status = &models.DefaultStruct{
 			Id:       http.StatusForbidden,
-			Name:     MSG_IGNORE_REQUEST_EXISTS,
-			Lang_key: i18n.BR_LANG_KEY,
+			Name:     messages.GetLocaleMessage(entity.Lang_key, "MSG_IGNORE_REQUEST_EXISTS"),
+			Lang_key: entity.Lang_key,
 		}
 
 		return http.StatusCreated, Must(enc.EncodeOne(status))
@@ -170,8 +160,8 @@ func ConfirmIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Enc
 	
 	status := &models.DefaultStruct{
 			Id:       http.StatusOK,
-			Name:     MSG_IGNORED_SUCCESSFUL,
-			Lang_key: i18n.BR_LANG_KEY,
+			Name:     messages.GetLocaleMessage(entity.Lang_key, "MSG_IGNORED_SUCCESSFUL"),
+			Lang_key: entity.Lang_key,
 		}
 
 	ignored := GetIgnoreContact(db, entity.Confirmation_code)
@@ -182,8 +172,8 @@ func ConfirmIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Enc
 	} else {
 		status = &models.DefaultStruct{
 			Id:       http.StatusForbidden,
-			Name:     MSG_IGNOREME_CODE_INVALID,
-			Lang_key: i18n.BR_LANG_KEY,
+			Name:     messages.GetLocaleMessage(entity.Lang_key, "MSG_IGNOREME_CODE_INVALID"),
+			Lang_key: entity.Lang_key,
 		}
 	}
 

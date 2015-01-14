@@ -2,11 +2,11 @@ package routes
 
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"bitbucket.org/hbtsmith/warnabrodagomartini/i18n"	
-	"github.com/coopernurse/gorp"
-	"github.com/go-martini/martini"	
+	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
+	"github.com/go-martini/martini"	
+	"github.com/coopernurse/gorp"
 	"net/http"
 	"strconv"
 //	"fmt"
@@ -15,12 +15,7 @@ import (
 )
 
 const (
-	SQL_LOGIN				= "SELECT * FROM users WHERE (username = :user OR email = :user) AND password = :pass "
-	MSG_LOGIN_INVALID		= "Usuário ou Senha inválidos."
-	MSG_LOGIN_REQUIRED		= "Usuário não está logado."
-	MSG_SESSION_INIT_ERROR	= "Erro ao iniciar Sessão."
-	MSG_SUCCESSFUL_LOGIN	= "Login realizado com sucesso!"
-	MSG_SUCCESSFUL_LOGOUT	= "Logout realizado com sucesso."
+	SQL_LOGIN				= "SELECT * FROM users WHERE (username = :user OR email = :user) AND password = :pass "	
 )
 
 func GetUserById(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
@@ -65,8 +60,8 @@ func DoLogin(entity models.UserLogin, session sessions.Session, enc Encoder, db 
 	
 	status := &models.DefaultStruct{
 			Id:       http.StatusUnauthorized,
-			Name:     MSG_LOGIN_INVALID,
-			Lang_key: i18n.BR_LANG_KEY,
+			Name:     messages.GetLocaleMessage("en","MSG_LOGIN_INVALID"),
+			Lang_key: "en",
 		}
 		
 	user := GetUserByLogin(entity, db)
@@ -75,12 +70,12 @@ func DoLogin(entity models.UserLogin, session sessions.Session, enc Encoder, db 
 
 		err := sessionauth.AuthenticateSession(session, user)
 		if err != nil {
-			status.Name = MSG_SESSION_INIT_ERROR	
+			status.Name = messages.GetLocaleMessage("en","MSG_SESSION_INIT_ERROR")
 			return http.StatusForbidden, Must(enc.EncodeOne(status))
 		}
 		user.Authenticated = true	
 		user.UpdateLastLogin()
-		status.Name = MSG_SUCCESSFUL_LOGIN
+		status.Name = messages.GetLocaleMessage("en","MSG_SUCCESSFUL_LOGIN")
 		return http.StatusOK, Must(enc.EncodeOne(user))		
 	
 	} else {		
@@ -108,15 +103,15 @@ func DoLogout(enc Encoder, session sessions.Session, user sessionauth.User, db g
 
 	status := &models.DefaultStruct{
 			Id:       http.StatusOK,
-			Name:     MSG_LOGIN_REQUIRED,
-			Lang_key: i18n.BR_LANG_KEY,
+			Name:     messages.GetLocaleMessage("en","MSG_LOGIN_REQUIRED"),
+			Lang_key: "en",
 		}
 
 	if user.IsAuthenticated() {
 
 		sessionauth.Logout(session, user)
 		session.Clear()
-		status.Name = MSG_SUCCESSFUL_LOGOUT
+		status.Name = messages.GetLocaleMessage("en","MSG_SUCCESSFUL_LOGOUT")
 	}	
 
 	updateUser := UserById(user.UniqueId().(int), db)

@@ -15,6 +15,7 @@ type CountWarning struct {
 	UnconfirmedByEmail	string `json:"UnconfirmedByEmail" 	db:"UnconfirmedByEmail"`
 	ConfirmedBySms		string `json:"ConfirmedBySms" 		db:"ConfirmedBySms"`
 	UnconfirmedBySms	string `json:"UnconfirmedBySms" 	db:"UnconfirmedBySms"`
+	UniqueContacts		string `json:"UniqueContacts" 		db:"UniqueContacts"`
 }
 
 

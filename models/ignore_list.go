@@ -28,5 +28,7 @@ type Ignore_List struct {
     Confirmation_code string `json:"confirmation_code"`
 
     Message string `json:"message"`
+
+    Lang_key string `json:"lang_key"`
     
 }

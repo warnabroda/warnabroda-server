@@ -2,7 +2,7 @@ package routes
 
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
-	"bitbucket.org/hbtsmith/warnabrodagomartini/i18n"
+	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"math/rand"
@@ -14,8 +14,8 @@ import (
 var global_subjects []models.DefaultStruct
 
 const (
-	SQL_SELECT_SUBJECTS_BY_ID		= "SELECT * FROM subjects ORDER BY Id"
-	MSG_DEFAULT_SUBJECT				= "Um amigo(a) acaba de lhe dar um toque"
+	SQL_SELECT_SUBJECTS_BY_ID		= "SELECT * FROM subjects ORDER BY Id"	
+	SQL_SELECT_SUBJECTS_BY_LANG_KEY	= "SELECT * FROM subjects WHERE lang_key = ? ORDER BY Id"	
 )
 
 func init(){
@@ -25,10 +25,19 @@ func init(){
 	} 
 }
 
+func GetSubjectsByLangKey(lang_key string) {
+	_, err := models.Dbm.Select(&global_subjects, SQL_SELECT_SUBJECTS_BY_LANG_KEY, lang_key)
+	if err != nil {
+		checkErr(err, "SELECT ERROR")
+	} 
+}
+
 // Get a random subject from the previews loaded upon containers startup
-func GetRandomSubject() models.DefaultStruct {		
+func GetRandomSubject(lang_key string) models.DefaultStruct {		
 	
 	var subject models.DefaultStruct
+
+	GetSubjectsByLangKey(lang_key)
 
 	// r := rand.New(rand.NewSource(99))
 	rand.Seed(time.Now().UTC().UnixNano())	
@@ -45,7 +54,7 @@ func GetRandomSubject() models.DefaultStruct {
 
 	 } else {
 		
-		subject = models.DefaultStruct{0, MSG_DEFAULT_SUBJECT, i18n.BR_LANG_KEY}
+		subject = models.DefaultStruct{0, messages.GetLocaleMessage(lang_key, "MSG_DEFAULT_SUBJECT"), lang_key}
 	 }
 
 	return subject
