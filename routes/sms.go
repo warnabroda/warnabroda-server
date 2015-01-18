@@ -40,8 +40,8 @@ func isWarnSentLimitByIpOver(warning *models.Warning, db gorp.SqlExecutor) bool{
 func sendSMSWarn(entity *models.Warning, db gorp.SqlExecutor){
 
 	message := SelectMessage(db, entity.Id_message)
-	sms_message := strings.Replace(messages.GetLocaleMessage(entity.Lang_key,"MSG_SMS_BODY"), "{{body}}", message.Name, 1)	
-	sms_message += messages.GetLocaleMessage(entity.Lang_key,"MSG_SMS_FOOTER")
+	sms_message := message.Name
+	sms_message += messages.GetLocaleMessage(entity.Lang_key,"MSG_FOOTER")
 
 	sms := &models.SMS {
 		CredencialKey: os.Getenv("WARNACREDENCIAL"),  

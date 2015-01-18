@@ -14,7 +14,7 @@ MSG_DEFAULT_SUBJECT						: "Un amigo(a) hay enviado una mensaje, que puede ser i
 MSG_SMS_QUOTA_EXCEEDED					: "Esta IP( {{ip}} ) ha enviado la cuota máxima de SMS diário."
 MSG_SMS_HEADER							: "Hola Broda, "
 MSG_SMS_BODY							: "{{body}}. "
-MSG_SMS_FOOTER							: "Warn A Broda tu tambien: www.warnabroda.com "
+MSG_FOOTER								: "Warn A Broda tu tambien: www.warnabroda.com "
 MSG_IGNOREME_CODE_INVALID				: "Código no válido."
 MSG_IGNORED_SUCCESSFUL					: "Usted fue ignorado con éxito, si alguna vez se arrepentirá, por favor póngase en contacto con nosotros, ya que es la única manera de reunirse con el Warn A Broda."
 MSG_CONTACT_ALREADY_IGNORED				: "Contacto ya estaba en la lista de ignorados."

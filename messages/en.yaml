@@ -14,7 +14,7 @@ MSG_DEFAULT_SUBJECT						: "A Buddy just sent you a message, maybe this will sav
 MSG_SMS_QUOTA_EXCEEDED					: "This IP( {{ip}} ) address has exceeded the allowed daily quota for SMS warns."
 MSG_SMS_HEADER							: "Hey Broda, "
 MSG_SMS_BODY							: "{{body}}. "
-MSG_SMS_FOOTER							: "Warn A Broda you too: www.warnabroda.com "
+MSG_FOOTER								: "Warn A Broda you too: www.warnabroda.com "
 MSG_IGNOREME_CODE_INVALID				: "Invalid code."
 MSG_IGNORED_SUCCESSFUL					: "You have been added to the ignore list successfully, if you ever want to receive warns from Warn A Broda again, please contact us."
 MSG_CONTACT_ALREADY_IGNORED				: "Contact already in the ignore list."
