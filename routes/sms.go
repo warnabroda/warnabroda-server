@@ -51,7 +51,7 @@ func sendSMSWarn(entity *models.Warning, db gorp.SqlExecutor){
 	    Host: models.URL_DOMAIN_MOBILE_PRONTO,	  
 	    Project: os.Getenv("WARNAPROJECT"),	  
 	    AuxUser: "WAB",	      
-	    MobileNumber: "55"+entity.Contact,
+	    MobileNumber: strings.Replace(entity.Contact, "+", "", 1),
 	    SendProject:"N",	    
 	}
 

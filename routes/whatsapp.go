@@ -11,7 +11,7 @@ import (
 	"log"
 	"time"
 	"encoding/json"
-
+	"strings"
 )
 
 var (	
@@ -42,13 +42,14 @@ func sendWhatsappWarn(entity *models.Warning, db gorp.SqlExecutor) {
 	subject := GetRandomSubject(entity.Lang_key)
 	message := SelectMessage(db, entity.Id_message)
 	footer  := messages.GetLocaleMessage(entity.Lang_key,"MSG_FOOTER")
+	fmt.Println(entity.Contact)
 	whatsMsg := models.Whatsapp {
 		Id: entity.Id,
-		Number: entity.Contact,
+		Number: strings.Replace(entity.Contact, "+", "", 1),
 		Message: subject.Name + " : "+message.Name + " "+footer,
 	}
 	whatsJson, _ := json.Marshal(whatsMsg)
-	fmt.Println(whatsJson)
+	fmt.Println(string(whatsJson[:]))
 	body         := flag.String("body", string(whatsJson[:]), "JSON body message")
 	flag.Parse()
 	
