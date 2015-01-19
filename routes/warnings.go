@@ -139,6 +139,8 @@ func processWarn(warning *models.Warning, db gorp.SqlExecutor, status *models.De
 			ProcessEmail(warning, db)
 		} else if warning.Id_contact_type == 2 {
 			ProcessSMS(warning, db, status)
+		} else if warning.Id_contact_type == 3 {
+			ProcessWhatsapp(warning, db)
 		}
 	}
 }
