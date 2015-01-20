@@ -19,13 +19,14 @@ var (
 	RabbitMQPass		= os.Getenv("WARNARABBITMQPASS")
 	HostWarnabroda		= os.Getenv("WARNAHOST")
 	uri          		= flag.String("uri", "amqp://"+RabbitMQUser+":"+RabbitMQPass+"@"+HostWarnabroda+":5672/", "AMQP URI")
-	exchangeName 		= flag.String("exchange", "warnabroda-whatsapp-queue", "Durable AMQP exchange name")
+	exchangeName 		= flag.String("exchange", "warnabroda-whatsapp-exchange", "Durable AMQP exchange name")
 	exchangeType 		= flag.String("exchange-type", "direct", "Exchange type - direct|fanout|topic|x-custom")
 	routingKey   		= flag.String("key", "warnabroda-key", "AMQP routing key")	
 	reliable     		= flag.Bool("reliable", true, "Wait for the publisher confirmation before exiting")
+
 )
 
-func init(){
+func init(){	
 	flag.Parse()
 }
 
@@ -39,25 +40,23 @@ func ProcessWhatsapp(warning *models.Warning, db gorp.SqlExecutor){
 //Deploys the message to be sent into an email struct, call the service and in case of successful send, update the warn as sent.
 func sendWhatsappWarn(entity *models.Warning, db gorp.SqlExecutor) {	
 
-	subject := GetRandomSubject(entity.Lang_key)
-	message := SelectMessage(db, entity.Id_message)
-	footer  := messages.GetLocaleMessage(entity.Lang_key,"MSG_FOOTER")
+	subject 	:= GetRandomSubject(entity.Lang_key)
+	message 	:= SelectMessage(db, entity.Id_message)
+	footer  	:= messages.GetLocaleMessage(entity.Lang_key,"MSG_FOOTER")
 	fmt.Println(entity.Contact)
-	whatsMsg := models.Whatsapp {
+	whatsMsg 	:= models.Whatsapp {
 		Id: entity.Id,
 		Number: strings.Replace(entity.Contact, "+", "", 1),
-		Message: subject.Name + " : "+message.Name + " "+footer,
+		Message: subject.Name + " : "+message.Name + ". "+footer,
 	}
-	whatsJson, _ := json.Marshal(whatsMsg)
-	fmt.Println(string(whatsJson[:]))
-	body         := flag.String("body", string(whatsJson[:]), "JSON body message")
-	flag.Parse()
-	
+	whatsJson,_ := json.Marshal(whatsMsg)
+	//fmt.Println(string(whatsJson[:]))
+	body 		:= string(whatsJson[:])	
 
-	if err := publish(*uri, *exchangeName, *exchangeType, *routingKey, *body, *reliable); err != nil {
+	if err := publish(*uri, *exchangeName, *exchangeType, *routingKey, body, *reliable); err != nil {
 		log.Fatalf("%s", err)
 	}
-	log.Printf("published %dB OK", len(*body))
+	log.Printf("published %dB OK", len(body))
 	
 
 }
@@ -119,7 +118,7 @@ func publish(amqpURI, exchange, exchangeType, routingKey, body string, reliable 
 			ContentEncoding: "",
 			Body:            []byte(body),
 			Timestamp:    	 time.Now(),
-			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
+			DeliveryMode:    amqp.Persistent, // 1=non-persistent(Transient), 2=persistent(Persistent)
 			Priority:        0,              // 0-9
 			// a bunch of application/implementation-specific fields
 		},

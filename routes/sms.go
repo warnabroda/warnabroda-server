@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 	"os"
-	"fmt"
+//	"fmt"
 )
 
 func ProcessSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct) {
@@ -79,7 +79,7 @@ func SendSMS(sms *models.SMS, db gorp.SqlExecutor) (bool, string) {
 	q.Set("MESSAGE", sms.Content)
 	u.RawQuery = q.Encode()
 
-	fmt.Println(u.String())
+	
 	res, err := http.Get(u.String())	
 	 checkErr(err, "SMS Not Sent")
 
