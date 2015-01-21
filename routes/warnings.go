@@ -3,15 +3,15 @@ package routes
 import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
 	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
-	"fmt"
 	"github.com/coopernurse/gorp"
-	"github.com/go-martini/martini"	
-//	"io/ioutil"
 	"net/http"
-//	"os"
-	"strconv"
 	"strings"
 	"time"
+//	"github.com/go-martini/martini"	
+//	"io/ioutil"
+//	"strconv"
+	"fmt"
+//	"os"
 )
 
 const (
@@ -59,29 +59,54 @@ func GetWarnings(enc Encoder, db gorp.SqlExecutor) (int, string) {
 	return http.StatusOK, Must(enc.Encode(warningsToIface(warnings)...))
 }
 
-func GetWarning(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
-	id, err := strconv.Atoi(parms["id"])
-	checkErr(err, "GET MARTINI PARAM ERROR")
-
-	obj, _ := db.Get(models.Warning{}, id)
+func GetWarning(id int64, db gorp.SqlExecutor) *models.Warning {
+	
+	obj, err := db.Get(models.Warning{}, id)
 
 	if err != nil || obj == nil {	
-		return http.StatusNotFound, ""
+		return nil
 	}
 
 	entity := obj.(*models.Warning)
-	return http.StatusOK, Must(enc.EncodeOne(entity))
+	return entity
 }
 
-func UpdateWarningSent(entity *models.Warning, db gorp.SqlExecutor) {
+func UpdateWarningSent(entity *models.Warning, db gorp.SqlExecutor) bool {
 	entity.Sent = true
 	entity.Last_modified_date = time.Now().String()
 	_, err := db.Update(entity)
 	checkErr(err, "ERROR UpdateWarningSent ERROR")	
+	return err == nil
 }
 
+func ConfirmWarning(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecutor) (int, string) {
+	fmt.Println(entity)
+		
+	status 			:= &models.DefaultStruct{
+		Id:       	http.StatusNotFound,
+		Name:     	"Warning Update Failed.",
+		Lang_key: 	"en",
+	}
+
+	warning 		:= GetWarning(entity.Id, db)
+	
+	if warning != nil{
+
+		warning.Message 	= entity.Name
+		if UpdateWarningSent(warning, db) {
+			status.Id 			= http.StatusAccepted
+			status.Name 		= "Warning Update Success."
+			status.Lang_key 	= warning.Lang_key			
+		}
+		
+	} 	
+
+	return http.StatusOK, Must(enc.EncodeOne(status))
+}
+
+
 // Receives a warning tru, inserts the request and process the warning and then respond to the interface
-func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
+func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor) (int, string) {
 
 	
 	status := &models.DefaultStruct{
@@ -101,7 +126,7 @@ func AddWarning(entity models.Warning, w http.ResponseWriter, enc Encoder, db go
 	if err != nil {
 		return http.StatusConflict, ""
 	}
-	w.Header().Set("Location", fmt.Sprintf("/warnabroda/warnings/%d", entity.Id))
+	
 
 	ingnored := InIgnoreList(db, entity.Contact)
 

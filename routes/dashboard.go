@@ -16,9 +16,11 @@ const (
 									"(SELECT COUNT(*) FROM warnabroda.warnings WHERE sent = true) AS Sent, " +
 									"(SELECT COUNT(*) FROM warnabroda.warnings WHERE sent = true AND Id_contact_type = 1) AS EmailSent, " +
 									"(SELECT COUNT(*) FROM warnabroda.warnings WHERE sent = true AND Id_contact_type = 2) AS SmsSent,  " +
+									"(SELECT COUNT(*) FROM warnabroda.warnings WHERE sent = true AND Id_contact_type = 3) AS WhatsappSent,  " +
 									"(SELECT COUNT(*) FROM warnabroda.warnings WHERE sent = false) AS NotSent, " +
 									"(SELECT COUNT(*) FROM warnabroda.warnings WHERE sent = false AND Id_contact_type = 1) AS EmailNotSent, " +
 									"(SELECT COUNT(*) FROM warnabroda.warnings WHERE sent = false AND Id_contact_type = 2) AS SmsNotSent, "	+
+									"(SELECT COUNT(*) FROM warnabroda.warnings WHERE sent = false AND Id_contact_type = 3) AS WhatsappNotSent, "	+
 									"(SELECT COUNT(*) FROM warnabroda.ignore_list) AS IgnoreList, " +
 									"(SELECT COUNT(*) FROM warnabroda.ignore_list WHERE confirmed = true) AS Confirmed, " +
 									"(SELECT COUNT(*) FROM warnabroda.ignore_list WHERE confirmed = false) AS Unconfirmed, " +

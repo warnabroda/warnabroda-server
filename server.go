@@ -45,6 +45,7 @@ func init() {
 		r.Get(`/subjects`, routes.GetSubjects)
 		r.Get(`/count-sent-warnings`, routes.CountSentWarnings)
 		r.Post(`/warnings`, binding.Json(models.Warning{}), routes.AddWarning)
+		r.Post(`/warning-confirm`, binding.Json(models.DefaultStruct{}), routes.ConfirmWarning)
 		r.Post(`/ignore-list`, binding.Json(models.Ignore_List{}), routes.AddIgnoreList)
 		r.Post(`/ignore-list-confirm`, binding.Json(models.Ignore_List{}), routes.ConfirmIgnoreList)
 		r.Post(`/captcha-validate`, binding.Json(models.Captcha{}), routes.CaptchaResponse)
