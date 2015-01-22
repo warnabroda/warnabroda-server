@@ -1,12 +1,13 @@
 package routes
 
 import (
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
 	"fmt"
-	"github.com/coopernurse/gorp"
-	"github.com/go-martini/martini"
 	"net/http"
 	"strconv"
+
+	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
+	"github.com/coopernurse/gorp"
+	"github.com/go-martini/martini"
 )
 
 const (

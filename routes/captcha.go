@@ -1,12 +1,13 @@
 package routes
 
 import (
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
-	"github.com/coopernurse/gorp"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+	
+	"github.com/coopernurse/gorp"
+	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
 )
 
 const(

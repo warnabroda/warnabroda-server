@@ -1,15 +1,16 @@
 package routes
 
 import (
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"	
-	"github.com/coopernurse/gorp"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"os"
 //	"fmt"
+
+	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
+	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"	
+	"github.com/coopernurse/gorp"
 )
 
 func ProcessSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct) {

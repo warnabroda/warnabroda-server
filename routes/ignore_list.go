@@ -1,10 +1,6 @@
 package routes
 
 import (
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
-	"github.com/go-martini/martini"
-	"github.com/coopernurse/gorp"
 	"os"
 	"net/http"
 	"strconv"
@@ -13,6 +9,11 @@ import (
 	"strings"
 	"io/ioutil"	
 //	"fmt"	
+
+	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
+	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
+	"github.com/go-martini/martini"
+	"github.com/coopernurse/gorp"
 )
 
 const (	

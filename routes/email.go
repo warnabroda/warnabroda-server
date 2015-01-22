@@ -1,14 +1,15 @@
 package routes
 
 import (
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"github.com/coopernurse/gorp"
-	"github.com/mostafah/mandrill"
 	"io/ioutil"
 	"encoding/json"
 	"os"
 	"strings"
 	"fmt"
+
+	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
+	"github.com/coopernurse/gorp"
+	"github.com/mostafah/mandrill"
 )
 
 var (	

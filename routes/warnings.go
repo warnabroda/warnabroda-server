@@ -1,17 +1,18 @@
 package routes
 
 import (
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
-	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
-	"github.com/coopernurse/gorp"
 	"net/http"
 	"strings"
 	"time"
+	"fmt"
 //	"github.com/go-martini/martini"	
 //	"io/ioutil"
 //	"strconv"
-	"fmt"
 //	"os"
+	
+	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
+	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
+	"github.com/coopernurse/gorp"
 )
 
 const (
@@ -160,13 +161,18 @@ func processWarn(warning *models.Warning, db gorp.SqlExecutor, status *models.De
 		status.Id = http.StatusForbidden
 		status.Name = strings.Replace(messages.GetLocaleMessage(warning.Lang_key, "MSG_SMS_SAME_WARN_DIFF_IP"), "{{time}}", "2", 1)				
 	} else {
-		if warning.Id_contact_type == 1 {
-			ProcessEmail(warning, db)
-		} else if warning.Id_contact_type == 2 {
-			ProcessSMS(warning, db, status)
-		} else if warning.Id_contact_type == 3 {
-			ProcessWhatsapp(warning, db)
+
+		switch warning.Id_contact_type {
+			case 1:
+				ProcessEmail(warning, db)
+			case 2:
+				ProcessSMS(warning, db, status)
+			case 3:
+				ProcessWhatsapp(warning, db)
+			default:
+				return
 		}
+		
 	}
 }
 

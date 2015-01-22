@@ -1,14 +1,15 @@
 package routes
 
 import (
+	"net/http"
+	"strconv"
+	
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
 	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
 	"github.com/go-martini/martini"	
 	"github.com/coopernurse/gorp"
-	"net/http"
-	"strconv"
 //	"fmt"
 	// "encoding/json"
 	// "strings"
