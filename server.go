@@ -59,7 +59,6 @@ func init() {
 
 			r.Get(`/authenticated-user`, routes.GetAuthenticatedUser)
 
-			// r.Post(`/authentication`, strict.ContentType("application/x-www-form-urlencoded"), binding.Form(models.UserLogin{}), routes.DoLogin)	
 			r.Post(`/authentication`, binding.Json(models.UserLogin{}), routes.DoLogin)				
 			r.Get(`/count-warnings`, routes.CountWarns)
 			r.Get(`/list-warnings`, binding.Json(models.Warn{}), routes.ListWarnings)
@@ -67,32 +66,6 @@ func init() {
 		})
 
 	})
-
-	// r.Get(`/warnabroda/messages/:id`, routes.GetMessage)
-	// r.Post(`/warnabroda/messages`, binding.Json(models.Message{}), routes.AddMessage)
-	// r.Put(`/warnabroda/messages/:id`, binding.Json(models.Message{}), routes.UpdateMessage)
-	// r.Delete(`/warnabroda/messages/:id`, routes.DeleteMessage)
-
-	// r.Get(`/warnabroda/contact_types/:id`, routes.GetContact_type)
-	// r.Post(`/warnabroda/contact_types`, binding.Json(models.Contact_type{}), routes.AddContact_type)
-	// r.Put(`/warnabroda/contact_types/:id`, binding.Json(models.Contact_type{}), routes.UpdateContact_type)
-	// r.Delete(`/warnabroda/contact_types/:id`, routes.DeleteContact_type)
-
-	// r.Get(`/warnabroda/subjects/:id`, routes.GetSubject)
-	// r.Post(`/warnabroda/subjects`, binding.Json(models.Subject{}), routes.AddSubject)
-	// r.Put(`/warnabroda/subjects/:id`, binding.Json(models.Subject{}), routes.UpdateSubject)
-	// r.Delete(`/warnabroda/subjects/:id`, routes.DeleteSubject)
-
-	// r.Get(`/warnabroda/warnings`, routes.GetWarnings)
-	// r.Get(`/warnabroda/warnings/:id`, routes.GetWarning)
-	// r.Put(`/warnabroda/warnings/:id`, binding.Json(models.Warning{}), routes.UpdateWarning)
-	// r.Delete(`/warnabroda/warnings/:id`, routes.DeleteWarning)
-
-
-	// r.Get(`/warnabroda/ignore-list/:id`, routes.GetIgnoreContact)
-	
-	// r.Put(`/warnabroda/ignore_list/:id`, binding.Json(models.Subject{}), routes.UpdateIgnoreList)
-	// r.Delete(`/warnabroda/ignore_list/:id`, routes.DeleteIgnoreList)	
 
 	// Inject database
 	m.MapTo(models.Dbm, (*gorp.SqlExecutor)(nil))
