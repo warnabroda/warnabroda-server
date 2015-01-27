@@ -30,7 +30,7 @@ func ProcessEmail(warning *models.Warning, db gorp.SqlExecutor){
 func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {	
 
 	//reads the e-mail template from a local file
-	wab_email_template := wab_root + "/models/warning_"+entity.Lang_key+".html"
+	wab_email_template := wab_root + "/resource/warning_"+entity.Lang_key+".html"
 	template_byte, err := ioutil.ReadFile(wab_email_template)
 	checkErr(err, "Email File Opening ERROR")
 	template_email_string := string(template_byte[:])

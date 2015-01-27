@@ -52,17 +52,12 @@ func sendWhatsappWarn(entity *models.Warning, db gorp.SqlExecutor) {
 		Number: strings.Replace(entity.Contact, "+", "", 1),
 		Message: subject.Name + " : "+message.Name + ". "+footer,
 	}
-	whatsJson,_ := json.Marshal(whatsMsg)
-	//fmt.Println(string(whatsJson[:]))
+	
+	whatsJson,_ := json.Marshal(whatsMsg)	
 	body 		:= string(whatsJson[:])	
-
-	// if err := publish(*uri, *exchangeName, *exchangeType, *routingKey, body, *reliable); err != nil {
-	// 	log.Fatalf("%s", err)
-	// }
-	// log.Printf("published %dB OK", len(body))
+	
 	go sendMessages(body)
-
-	//<-stop
+	
 	<-stop
 
 }

@@ -3,15 +3,16 @@ package routes
 import (
 	"net/http"
 	"strings"
+	"strconv"
 	"time"
 	"fmt"
-//	"github.com/go-martini/martini"	
 //	"io/ioutil"
-//	"strconv"
 //	"os"
 	
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
 	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
+	"github.com/martini-contrib/sessionauth"
+	"github.com/go-martini/martini"	
 	"github.com/coopernurse/gorp"
 )
 
@@ -72,6 +73,26 @@ func GetWarning(id int64, db gorp.SqlExecutor) *models.Warning {
 	return entity
 }
 
+func GetWarningDetail(enc Encoder, db gorp.SqlExecutor, user sessionauth.User, parms martini.Params) (int, string) {
+
+	if user.IsAuthenticated() {
+		
+		id, err := strconv.Atoi(parms["id"])
+		obj, _ := db.Get(models.Warning{}, id)
+		if err != nil || obj == nil {
+			checkErr(err, "GET WARNING DETAIL FAILED")
+			// Invalid id, or does not exist
+			return http.StatusNotFound, ""
+		}
+		entity := obj.(*models.Warning)
+		return http.StatusOK, Must(enc.EncodeOne(entity))
+	} 
+
+	return http.StatusUnauthorized,  ""
+
+
+}
+
 func UpdateWarningSent(entity *models.Warning, db gorp.SqlExecutor) bool {
 	entity.Sent = true
 	entity.Last_modified_date = time.Now().String()
@@ -119,7 +140,9 @@ func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor) (int, s
 
 	entity.Sent = false
 	entity.Created_by = "system"
-	entity.Created_date = time.Now().String()
+	//entity.Created_date = time.Now().String()
+
+	
 	
 
 	err := db.Insert(&entity)

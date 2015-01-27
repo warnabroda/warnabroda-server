@@ -62,6 +62,7 @@ func init() {
 			r.Post(`/authentication`, binding.Json(models.UserLogin{}), routes.DoLogin)				
 			r.Get(`/count-warnings`, routes.CountWarns)
 			r.Get(`/list-warnings`, binding.Json(models.Warn{}), routes.ListWarnings)
+			r.Get(`/warning/:id`, routes.GetWarningDetail)
 			
 		})
 

@@ -4,10 +4,10 @@ import (
 	"os"
 	"net/http"
 	"strconv"
-	"time"
 	"math/rand"
 	"strings"
 	"io/ioutil"	
+	"time"
 //	"fmt"	
 
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
@@ -41,7 +41,7 @@ func randInt(min int, max int) int {
 // opens the template, parse the variables sets the email struct and Send the confirmation code to confirm the ignored contact.
 func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	//reads the e-mail template from a local file
-	wab_email_template := wab_root + "/models/ignoreme_"+entity.Lang_key+".html"
+	wab_email_template := wab_root + "/resource/ignoreme_"+entity.Lang_key+".html"
 	template_byte, err := ioutil.ReadFile(wab_email_template)
 	checkErr(err, "Ignore-me Email File Opening ERROR")
 	template_email_string := string(template_byte[:])
@@ -135,8 +135,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 	}
 	
     rand.Seed(time.Now().UTC().UnixNano())   
-	entity.Created_by 			= "user"
-	entity.Created_date 		= time.Now().String()	
+	entity.Created_by 			= "user"	
 	entity.Confirmed 			= false;
 	entity.Confirmation_code 	= randomString(6)
 
@@ -169,6 +168,7 @@ func ConfirmIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Enc
 
 	if ignored != nil {
 		ignored.Confirmed = true
+		ignored.Last_modified_date = entity.Last_modified_date
 		UpdateIgnoreList(ignored, db)
 	} else {
 		status = &models.DefaultStruct{
@@ -199,8 +199,7 @@ func DeleteIgnoreList(db gorp.SqlExecutor, parms martini.Params) (int, string) {
 }
 
 func UpdateIgnoreList(entity *models.Ignore_List, db gorp.SqlExecutor) {
-	
-	entity.Last_modified_date = time.Now().String()
+		
 	_, err := db.Update(entity)
 	if err != nil {
 		checkErr(err, "update failed")

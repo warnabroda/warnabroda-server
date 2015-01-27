@@ -19,17 +19,21 @@ const (
 	SQL_LOGIN				= "SELECT * FROM users WHERE (username = :user OR email = :user) AND password = :pass "	
 )
 
-func GetUserById(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
+func GetUserById(enc Encoder, db gorp.SqlExecutor, user sessionauth.User, parms martini.Params) (int, string) {
 	
-	id, err := strconv.Atoi(parms["id"])	
+	if user.IsAuthenticated(){
+		id, err := strconv.Atoi(parms["id"])	
 
-	if err != nil {
-		checkErr(err, "GET USER ERROR")
+		if err != nil {
+			checkErr(err, "GET USER ERROR")
+		}
+		
+		entity := UserById(id, db)
+
+		return http.StatusOK, Must(enc.EncodeOne(entity))
 	}
-	
-	entity := UserById(id, db)
 
-	return http.StatusOK, Must(enc.EncodeOne(entity))
+	return http.StatusUnauthorized, ""
 }
 
 func UserById(id int, db gorp.SqlExecutor) *models.User {
