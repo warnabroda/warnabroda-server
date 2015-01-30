@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/coopernurse/gorp"	
-	"github.com/martini-contrib/sessionauth"	
+	"github.com/martini-contrib/sessionauth"
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
 	// "fmt"
 )

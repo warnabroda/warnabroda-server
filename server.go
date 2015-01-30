@@ -63,6 +63,8 @@ func init() {
 			r.Get(`/count-warnings`, routes.CountWarns)
 			r.Get(`/list-warnings`, binding.Json(models.Warn{}), routes.ListWarnings)
 			r.Get(`/warning/:id`, routes.GetWarningDetail)
+			r.Get(`/messages-stats`, routes.GetMessagesStats)
+			
 			
 		})
 
