@@ -26,23 +26,26 @@ class WhatsappCli():
 
 import simplejson as json
 import stomp
-from stomp.listener import ConnectionListener
 
-
-class WhatsappStompClientListener(ConnectionListener):
+class WhatsappStompClientListener(object):
 
     def __init__(self):
         self.credentials = None
         self.whatsapp = WhatsappCli(self.credentials)
 
 
-    def on_message(self, headers, body):
-        msg = json.loads(body)
-        if "destination" in body and "message" in body:
-            dest = body["destination"]
-            msg = body["message"]
-            sent = self.get_whatsap().send_msg(dest, msg)
-            LOG.debug("MSG SENT %s", sent)
+    def on_message(self, headers, message):
+        try:
+            msg = json.loads(message)
+            if "destination" in message and "message" in message:
+                id = message["id"]
+                dest = message["number"]
+                msg = message["message"]
+                sent = self.get_whatsap().send_msg(dest, msg)
+                LOG.debug("MSG SENT %s", sent)
+                self.send_confirmation(id, sent)
+        except:
+            LOG.info("Could not load message %s", message)
 
 
     def get_whatsap(self):
@@ -55,17 +58,30 @@ class WhatsappStompClientListener(ConnectionListener):
             self.credentials = (os.environ["WARNA_WHATSAPP_NUMBER"], os.environ["WARNA_WHATSAPP_PASS"])
         return self.credentials
 
+    def send_confirmation(self, msg_id, msg):
+        pass
+
 
 
 if __name__ == "__main__":
+    print "Iniciando cliente"
     logging.basicConfig()
     conn = stomp.Connection()
     conn.set_listener('', WhatsappStompClientListener())
     conn.start()
-    conn.connect()
+    print "Connectando"
+    conn.connect(os.environ["WARNARABBITMQUSER"], os.environ["WARNARABBITMQPASS"])
+    print "Connectado"
 
-    conn.subscribe(destination='/queue/whatsapp', id=1, ack='auto')
+    print "Se inscrevendo na lista"
+    conn.subscribe(destination=os.environ["WARNAQUEUEWHATSAPP"], id=1, ack='auto')
+    print "Inscrito"
 
-
-
-
+    try:
+        while True:
+            pass
+    except:
+        print "Vai desconectar"
+    finally:
+        conn.disconnect()
+        print "Desconectado"
