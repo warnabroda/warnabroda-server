@@ -26,17 +26,18 @@ class WhatsappCli():
 
 import simplejson as json
 import stomp
+import requests
 
 class WhatsappStompClientListener(object):
 
     def __init__(self):
         self.credentials = None
-        self.whatsapp = WhatsappCli(self.credentials)
+        self.whatsapp = None
 
 
     def on_message(self, headers, message):
         try:
-            msg = json.loads(message)
+            message = json.loads(message)
             if "destination" in message and "message" in message:
                 id = message["id"]
                 dest = message["number"]
@@ -45,7 +46,7 @@ class WhatsappStompClientListener(object):
                 LOG.debug("MSG SENT %s", sent)
                 self.send_confirmation(id, sent)
         except:
-            LOG.info("Could not load message %s", message)
+            LOG.info("Could not send message %s", message)
 
 
     def get_whatsap(self):
@@ -59,8 +60,8 @@ class WhatsappStompClientListener(object):
         return self.credentials
 
     def send_confirmation(self, msg_id, msg):
-        pass
-
+        data = {"id":msg_id, "name":msg}
+        requests.post(url="www.warnabroda.com:3000/warnabroda/warning-confirm", data=data)
 
 
 if __name__ == "__main__":
@@ -85,3 +86,8 @@ if __name__ == "__main__":
     finally:
         conn.disconnect()
         print "Desconectado"
+
+
+
+
+
