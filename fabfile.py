@@ -12,6 +12,16 @@ def deploy():
 		run("go get")
 		run("go build")
 		run("cp -f warnabrodagomartini /opt/warnabroda/project/server/server")
+		run("cp -f tools /opt/warnabroda/project/server/tools")
+
+def deploy_tools():
+	path = run("echo $GOPATH")
+	path = os.path.join(path, "src", "bitbucket.org", "hbtsmith", "warnabrodagomartini")
+	with cd(path):
+		run("git pull")
+		run("cp tools/* /opt/warnabroda/project/server/tools")
+
+	run("supervisorctl restart whats_python")
 
 def restart():
 	run("supervisorctl restart server")
@@ -25,6 +35,10 @@ def deploy_view():
 		run("rm -rf /opt/warnabroda/project/view/dist_old")
 		run("mv /opt/warnabroda/project/view/dist /opt/warnabroda/project/view/dist_old")
 		run("mv /opt/warnabroda/project/view/dist_new /opt/warnabroda/project/view/dist")
+
+
+
+		
 		
 
 

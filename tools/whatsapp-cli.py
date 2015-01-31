@@ -39,7 +39,7 @@ class WhatsappStompClientListener(object):
     def on_message(self, headers, message):
         try:
             message = json.loads(message)
-            if "destination" in message and "message" in message:
+            if "number" in message and "message" in message:
                 id = message["id"]
                 dest = message["number"]
                 msg = message["message"]
