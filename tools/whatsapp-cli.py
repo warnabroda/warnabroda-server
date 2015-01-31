@@ -4,6 +4,7 @@ import logging
 from yowsup.demos import sendclient
 
 LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
 
 class WhatsappCli():
 
@@ -62,6 +63,7 @@ class WhatsappStompClientListener(object):
     def send_confirmation(self, msg_id, msg):
         data = {"id":msg_id, "name":msg}
         requests.post(url="www.warnabroda.com:3000/warnabroda/warning-confirm", data=data)
+        LOG.debug("Post sent")
 
 
 if __name__ == "__main__":
