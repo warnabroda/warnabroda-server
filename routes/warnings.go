@@ -5,7 +5,7 @@ import (
 	"strings"
 	"strconv"
 	"time"
-	"fmt"
+//	"fmt"
 //	"io/ioutil"
 //	"os"
 	
@@ -101,8 +101,7 @@ func UpdateWarningSent(entity *models.Warning, db gorp.SqlExecutor) bool {
 	return err == nil
 }
 
-func ConfirmWarning(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecutor) (int, string) {
-	fmt.Println(entity)
+func ConfirmWarning(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecutor) (int, string) {	
 		
 	status 			:= &models.DefaultStruct{
 		Id:       	http.StatusNotFound,
@@ -154,7 +153,7 @@ func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor) (int, s
 
 	ingnored := InIgnoreList(db, entity.Contact)
 
-	if ingnored!= nil && ingnored.Confirmed {
+	if ingnored != nil && ingnored.Confirmed {
 		status = &models.DefaultStruct{
 			Id:       http.StatusForbidden,
 			Name:     messages.GetLocaleMessage(entity.Lang_key, "MSG_IGNORED_USER"),
@@ -191,7 +190,7 @@ func processWarn(warning *models.Warning, db gorp.SqlExecutor, status *models.De
 			case 2:
 				ProcessSMS(warning, db, status)
 			case 3:
-				ProcessWhatsapp(warning, db)
+				SendWhatsappWarning(warning, db)
 			default:
 				return
 		}

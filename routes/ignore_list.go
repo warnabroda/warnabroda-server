@@ -17,7 +17,7 @@ import (
 )
 
 const (	
-	SQL_IN_IGNORE_LIST_BY_CONTACT			= "SELECT * FROM ignore_list WHERE Contact= :contact "
+	SQL_IN_IGNORE_LIST_BY_CONTACT			= "SELECT * FROM ignore_list WHERE Contact= :contact"
 	SQL_IN_IGNORE_LIST_BY_CODE				= "SELECT * FROM ignore_list WHERE confirmation_code= :code"
 	SQL_COUNT_MULTIPLE_IGNOREME_REQUESTS	= "SELECT COUNT(*) FROM ignore_list WHERE ip=? AND (created_date + INTERVAL 2 HOUR) > NOW()"
 )
@@ -82,7 +82,7 @@ func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	    Host: models.URL_DOMAIN_MOBILE_PRONTO,	  
 	    Project: os.Getenv("WARNAPROJECT"),	  
 	    AuxUser: "WAB",	      
-	    MobileNumber: "55"+entity.Contact,
+	    MobileNumber: strings.Replace(entity.Contact, "+", "", 1),
 	    SendProject:"N",	    
 	}
 
@@ -92,6 +92,13 @@ func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 		entity.Message = response
 		UpdateIgnoreList(entity, db)
 	}
+
+	go sendWhatsappIgnoreme(entity, db)
+}
+
+// send a Whatsapp msg with the confirmation code to confirm the ignored contact
+func sendWhatsappIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){	
+	SendWhatsappIgnoreRequest(entity, db)
 }
 
 // Add the request to be ignored for future warnings, it requires further confimation
@@ -138,17 +145,20 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 	entity.Created_by 			= "user"	
 	entity.Confirmed 			= false;
 	entity.Confirmation_code 	= randomString(6)
-
-	if strings.Contains(entity.Contact,"@"){
-		status.Name += " via e-mail."			
-		go sendEmailIgnoreme(&entity, db)
-	} else {
-		status.Name += " via SMS."
-		go sendSMSIgnoreme(&entity, db)
-	}		
-
+	
 	errIns := db.Insert(&entity)
 	checkErr(errIns, "INSERT IGNORE FAIL")
+
+	if strings.Contains(entity.Contact, "@"){
+		status.Name += " via e-mail."			
+		go sendEmailIgnoreme(&entity, db)
+	} else if strings.Contains(entity.Contact, "+55"){
+		status.Name += " via SMS."
+		go sendSMSIgnoreme(&entity, db)
+	} else {
+		go sendWhatsappIgnoreme(&entity, db)
+	}
+
 	
 		
 	//w.Header().Set("Location", fmt.Sprintf("/warnabroda/ignore-list/%d", entity.Id))
@@ -215,10 +225,11 @@ func InIgnoreList(db gorp.SqlExecutor, contact string) *models.Ignore_List {
 	err := db.SelectOne(&ignored, SQL_IN_IGNORE_LIST_BY_CONTACT,  
 		map[string]interface{}{
 	  		"contact": contact,
-		})
+		})	
 	if err != nil {
 		return nil
 	}	
+
 
 	return &ignored
 }

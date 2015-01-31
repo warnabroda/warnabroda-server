@@ -35,14 +35,8 @@ func init(){
 }
 
 // For now all due verifications regarding send rules is done previewsly, here we just async the e-mail send of the warn
-func ProcessWhatsapp(warning *models.Warning, db gorp.SqlExecutor){	
-	
-	go sendWhatsappWarn(warning, db)
-	
-}
-
 //Deploys the message to be sent into an email struct, call the service and in case of successful send, update the warn as sent.
-func sendWhatsappWarn(entity *models.Warning, db gorp.SqlExecutor) {	
+func SendWhatsappWarning(entity *models.Warning, db gorp.SqlExecutor){
 
 	subject 	:= GetRandomSubject(entity.Lang_key)
 	message 	:= SelectMessage(db, entity.Id_message)
@@ -53,14 +47,30 @@ func sendWhatsappWarn(entity *models.Warning, db gorp.SqlExecutor) {
 		Number: strings.Replace(entity.Contact, "+", "", 1),
 		Message: subject.Name + " : "+message.Name + ". "+footer,
 	}
-	
-	whatsJson,_ := json.Marshal(whatsMsg)	
-	body 		:= string(whatsJson[:])	
+	sendWhatsapp(&whatsMsg)	
+}
+
+func SendWhatsappIgnoreRequest(entity *models.Ignore_List, db gorp.SqlExecutor){
+
+	message 	:= strings.Replace(messages.GetLocaleMessage(entity.Lang_key,"MSG_SMS_IGNORE_CONFIRMATION_REQUEST"), "{{url}}", entity.Confirmation_code, 1)
+	footer  	:= messages.GetLocaleMessage(entity.Lang_key,"MSG_FOOTER")
+
+	whatsMsg 	:= models.Whatsapp {
+		Id: -1*entity.Id,
+		Number: strings.Replace(entity.Contact, "+", "", 1),
+		Message: message + "... "+footer,
+	}
+
+	sendWhatsapp(&whatsMsg)
+}
+
+func sendWhatsapp(entity *models.Whatsapp){
+	entityJson,_ := json.Marshal(entity)	
+	body 		:= string(entityJson[:])	
 	
 	go sendMessages(body)
 	
 	<-stop
-
 }
 
 func sendMessages(msg string) {
