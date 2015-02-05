@@ -6,6 +6,12 @@ from yowsup.demos import sendclient
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
 
+def utf8(msg):
+    parsed = msg
+    if msg and isinstance(msg, unicode):
+        parsed = msg.encode("UTF-8")
+    return parsed
+
 class WhatsappCli():
 
     def __init__(self, credentials):
@@ -42,7 +48,7 @@ class WhatsappStompClientListener(object):
             if "number" in message and "message" in message:
                 id = message["id"]
                 dest = message["number"]
-                msg = message["message"]
+                msg = utf8(message["message"])
                 sent = self.get_whatsap().send_msg(dest, msg)
                 LOG.debug("MSG SENT %s", sent)
                 self.send_confirmation(id, sent)
@@ -62,7 +68,7 @@ class WhatsappStompClientListener(object):
 
     def send_confirmation(self, msg_id, msg):
         data = {"id":msg_id, "name":msg}
-        requests.post(url="www.warnabroda.com:3000/warnabroda/warning-confirm", data=data)
+        requests.post(url="http://localhost:3000/warnabroda/warning-confirm", data=json.dumps(data))
         LOG.debug("Post sent")
 
 
