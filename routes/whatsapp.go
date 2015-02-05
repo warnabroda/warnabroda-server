@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 	"flag"
-	"os"	
+	"os"
 	
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
 	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
@@ -16,9 +16,9 @@ var (
 	RabbitMQUser 		= os.Getenv("WARNARABBITMQUSER")
 	RabbitMQPass		= os.Getenv("WARNARABBITMQPASS")
 	HostWarnabroda		= os.Getenv("WARNAHOST")
-	queue 				= os.Getenv("WARNAQUEUEWHATSAPP")
+	WarnaQueueWhats 	= os.Getenv("WARNAQUEUEWHATSAPP")
 	serverAddr 			= flag.String("server", HostWarnabroda+":61613", "STOMP server endpoint")
-	queueName 			= flag.String("queue", queue, "Destination queue")
+	queueName 			= flag.String("queue", WarnaQueueWhats, "Destination queue")
 	helpFlag 			= flag.Bool("help", false, "Print help text")
 	stop 				= make(chan bool)
 )
@@ -83,7 +83,7 @@ func sendMessages(msg string) {
 		println("cannot connect to server", err.Error())
 		return
 	}
-	err = conn.Send(*queueName, "application/json",[]byte(msg), nil)
+	err = conn.Send(*queueName, "text/plain",[]byte(msg), nil)
 	if err != nil {
 		println("failed to send to server", err)
 		return
