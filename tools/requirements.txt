@@ -1,2 +1,3 @@
 stomp.py
 simplejson
+requests
