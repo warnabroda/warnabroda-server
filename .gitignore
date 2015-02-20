@@ -2,5 +2,6 @@
 .project
 *.swp
 *~
+.pyc
 node_modules
 /routes/sms.go
