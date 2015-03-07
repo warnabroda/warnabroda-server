@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	SQL_MESSAGES_BY_LANG_KEY	= "SELECT * FROM messages WHERE lang_key=? ORDER BY name"
+	SQL_MESSAGES_BY_LANG_KEY	= "SELECT * FROM messages WHERE lang_key=? AND active=true ORDER BY name"
 	SQL_MESSAGES_ALL			= "SELECT " +
 								" 	DISTINCT(m.name) as name, " +
 								"	m.id as id, " +

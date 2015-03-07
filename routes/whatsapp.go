@@ -5,6 +5,7 @@ import (
 	"strings"
 	"flag"
 	"os"
+	"fmt"
 	
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
 	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
@@ -38,15 +39,16 @@ func init(){
 //Deploys the message to be sent into an email struct, call the service and in case of successful send, update the warn as sent.
 func SendWhatsappWarning(entity *models.Warning, db gorp.SqlExecutor){
 
-	subject 	:= GetRandomSubject(entity.Lang_key)
+	subject 	:= messages.GetLocaleMessage(entity.Lang_key,"MSG_HEADER_WHATSAPP")
 	message 	:= SelectMessage(db, entity.Id_message)
-	footer  	:= messages.GetLocaleMessage(entity.Lang_key,"MSG_FOOTER")
+	footer  	:= messages.GetLocaleMessage(entity.Lang_key,"MSG_FOOTER_WHATSAPP")
 	
 	whatsMsg 	:= models.Whatsapp {
 		Id: entity.Id,
 		Number: strings.Replace(entity.Contact, "+", "", 1),
-		Message: subject.Name + " : "+message.Name + ". "+footer,
+		Message: subject + " :\r\n \r\n"+message.Name + ". \r\n \r\n"+footer,
 	}
+	fmt.Println(whatsMsg)
 	sendWhatsapp(&whatsMsg)	
 }
 

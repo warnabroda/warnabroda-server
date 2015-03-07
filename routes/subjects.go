@@ -50,7 +50,7 @@ func GetRandomSubject(lang_key string) models.DefaultStruct {
 
 	 } else {
 		
-		subject = models.DefaultStruct{0, messages.GetLocaleMessage(lang_key, "MSG_DEFAULT_SUBJECT"), lang_key}
+		subject = models.DefaultStruct{0, messages.GetLocaleMessage(lang_key, "MSG_DEFAULT_SUBJECT"), lang_key, true}
 	 }
 
 	return subject
