@@ -5,7 +5,7 @@ import (
 	"strings"
 	"flag"
 	"os"
-	"fmt"
+	//"fmt"
 	
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
 	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
@@ -48,7 +48,7 @@ func SendWhatsappWarning(entity *models.Warning, db gorp.SqlExecutor){
 		Number: strings.Replace(entity.Contact, "+", "", 1),
 		Message: subject + " :\r\n \r\n"+message.Name + ". \r\n \r\n"+footer,
 	}
-	fmt.Println(whatsMsg)
+
 	sendWhatsapp(&whatsMsg)	
 }
 
