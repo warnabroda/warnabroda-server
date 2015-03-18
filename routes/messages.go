@@ -12,11 +12,13 @@ import (
 )
 
 const (
-	SQL_MESSAGES_BY_LANG_KEY	= "SELECT * FROM messages WHERE lang_key=? AND active=true ORDER BY name"
+	SQL_MESSAGES_BY_LANG_KEY	= "SELECT id, name, lang_key, active FROM messages WHERE lang_key=? AND active=true ORDER BY name"
+	SQL_MESSAGES_BY_ID			= "SELECT id, name, lang_key, active FROM messages WHERE id=?"
 	SQL_MESSAGES_ALL			= "SELECT " +
 								" 	DISTINCT(m.name) as name, " +
 								"	m.id as id, " +
 								"	m.lang_key as lang_key, 	" +
+								"	m.active as active, 	" +
 								"	COUNT(w.id) as total, " +
 								"	(SELECT COUNT(*) FROM warnings ww WHERE ww.sent = false AND ww.Id_message = m.id) AS not_sent, " +
 								"	(SELECT COUNT(*) FROM warnings www WHERE www.sent = true AND www.Id_message = m.id) AS sent, " +
@@ -62,21 +64,29 @@ func GetMessagesStats(enc Encoder, db gorp.SqlExecutor, user sessionauth.User) (
 
 func GetMessage(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	id, err := strconv.Atoi(parms["id"])
-	obj, _ := db.Get(models.DefaultStruct{}, id)
-	if err != nil || obj == nil {
+		
+	if err != nil {		
+		// Invalid id, or does not exist
+		return http.StatusNotFound, ""
+	}
+
+	obj := models.MessageStruct{}
+	err = db.SelectOne(&obj, "SELECT * FROM messages WHERE id=?", id)
+
+	if err != nil {
 		checkErr(err, "get failed")
 		// Invalid id, or does not exist
 		return http.StatusNotFound, ""
 	}
-	entity := obj.(*models.DefaultStruct)
-	return http.StatusOK, Must(enc.EncodeOne(entity))
+	
+	return http.StatusOK, Must(enc.EncodeOne(obj))
 }
 
 func SelectMessage(db gorp.SqlExecutor, id int64) models.DefaultStruct {
 
 	entity := models.DefaultStruct{}
 
-	err := db.SelectOne(&entity, "SELECT * FROM messages WHERE id=?", id)
+	err := db.SelectOne(&entity, SQL_MESSAGES_BY_ID, id)
 
 	if err != nil {
 		checkErr(err, "select failed")
@@ -95,23 +105,38 @@ func AddMessage(entity models.DefaultStruct, w http.ResponseWriter, enc Encoder,
 	return http.StatusCreated, Must(enc.EncodeOne(entity))
 }
 
-func UpdateMessage(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
-	id, err := strconv.Atoi(parms["id"])
-	obj, _ := db.Get(models.DefaultStruct{}, id)
-	if err != nil || obj == nil {
-		checkErr(err, "get failed")
-		// Invalid id, or does not exist
-		return http.StatusNotFound, ""
-	}
-	oldEntity := obj.(*models.DefaultStruct)
+func SaveOrUpdateMessage(entity models.MessageStruct, enc Encoder, db gorp.SqlExecutor, user sessionauth.User) (int, string) {
 
-	entity.Id = oldEntity.Id
-	_, err = db.Update(&entity)
-	if err != nil {
-		checkErr(err, "update failed")
-		return http.StatusConflict, ""
+	fmt.Println(entity)
+	if user.IsAuthenticated(){
+
+		entity.Last_modified_by = user.UniqueId().(int)
+
+		if (entity.Id < 1){
+			err := db.Insert(&entity)
+			if err != nil {
+				checkErr(err, "insert failed")
+				return http.StatusForbidden, ""
+			}
+		} else {
+			obj, _ := db.Get(models.MessageStruct{}, entity.Id)
+			if obj == nil {
+					// Invalid id, or does not exist
+				return http.StatusNotFound, ""
+			}			
+				
+			_, err := db.Update(&entity)
+			if err != nil {
+				checkErr(err, "update failed")
+				return http.StatusConflict, ""
+			}
+		}
+		
+		return http.StatusOK, Must(enc.EncodeOne(entity))
+
 	}
-	return http.StatusOK, Must(enc.EncodeOne(entity))
+
+	return http.StatusUnauthorized, ""
 }
 
 func DeleteMessage(db gorp.SqlExecutor, parms martini.Params) (int, string) {

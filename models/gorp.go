@@ -112,7 +112,7 @@ func init() {
 	Dbm = &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{"InnoDB", "UTF8"}}
 	Dbm.TypeConverter = CustomTypeConverter{}
 
-	Dbm.AddTableWithName(DefaultStruct{}, "messages").SetKeys(true, "Id")
+	Dbm.AddTableWithName(DefaultStruct{}, "messages").SetKeys(true, "Id")	
 
 	Dbm.AddTableWithName(DefaultStruct{}, "contact_types").SetKeys(true, "Id")
 
@@ -124,11 +124,13 @@ func init() {
 
 	Dbm.AddTableWithName(User{}, "users").SetKeys(true, "Id")
 
+	Dbm.AddTableWithName(MessageStruct{}, "messages").SetKeys(true, "Id")
+
 	//Dbm.TraceOn("[gorp]", log.New(os.Stdout, "###Warn A Broda LOG:", log.Lmicroseconds))
 	err = Dbm.CreateTablesIfNotExists()
 	checkErr(err, "create tables failed")	
 
-	dbLoadDefaultData()
+	// dbLoadDefaultData()
 
 }
 

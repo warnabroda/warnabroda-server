@@ -10,7 +10,7 @@ import (
 	"github.com/martini-contrib/sessions"
 	"github.com/go-martini/martini"	
 	"github.com/coopernurse/gorp"
-//	"fmt"
+	"fmt"
 	// "encoding/json"
 	// "strings"
 )
@@ -21,11 +21,12 @@ const (
 
 func GetUserById(enc Encoder, db gorp.SqlExecutor, user sessionauth.User, parms martini.Params) (int, string) {
 	
+	fmt.Println(parms)	
 	if user.IsAuthenticated(){
 		id, err := strconv.Atoi(parms["id"])	
 
 		if err != nil {
-			checkErr(err, "GET USER ERROR")
+			return http.StatusNotFound, ""
 		}
 		
 		entity := UserById(id, db)

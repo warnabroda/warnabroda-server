@@ -59,11 +59,15 @@ func init() {
 
 			r.Get(`/authenticated-user`, routes.GetAuthenticatedUser)
 
-			r.Post(`/authentication`, binding.Json(models.UserLogin{}), routes.DoLogin)				
+			r.Post(`/authentication`, binding.Json(models.UserLogin{}), routes.DoLogin)
 			r.Get(`/count-warnings`, routes.CountWarns)
 			r.Get(`/list-warnings`, binding.Json(models.Warn{}), routes.ListWarnings)
 			r.Get(`/warning/:id`, routes.GetWarningDetail)
 			r.Get(`/messages-stats`, routes.GetMessagesStats)
+			
+			r.Get(`/messages/:id`, routes.GetMessage)
+			r.Post(`/messages`, binding.Json(models.MessageStruct{}), routes.SaveOrUpdateMessage)
+			
 			
 			
 		})
