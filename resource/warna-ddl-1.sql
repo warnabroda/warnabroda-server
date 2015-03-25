@@ -20,6 +20,7 @@ CREATE TABLE warning_resp (
   id_warning bigint(20) DEFAULT NULL,
   resp_hash varchar(255) DEFAULT NULL,
   message text,
+  reply_to varchar(45) DEFAULT NULL,
   ip varchar(255) DEFAULT NULL,
   browser varchar(255) DEFAULT NULL,
   operating_system varchar(255) DEFAULT NULL,
@@ -31,4 +32,4 @@ CREATE TABLE warning_resp (
   lang_key varchar(10) DEFAULT NULL,
   PRIMARY KEY (id),
   UNIQUE KEY Id_UNIQUE (id)
-) ENGINE=InnoDB AUTO_INCREMENT=2432 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

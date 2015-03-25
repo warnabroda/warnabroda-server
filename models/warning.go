@@ -34,6 +34,8 @@ type Warning struct {
     Last_modified_date string `json:"last_modified_date"`
   
     Lang_key string `json:"lang_key"`
+
+    WarningResp `json:"warning_resp"`
   
 }
 
@@ -50,6 +52,36 @@ type Warn struct {
     Sent bool `json:"Sent" db:"sent"`    
   
     CreatedDate JDate `json:"CreatedDate" db:"created_date"`
+  
+}
 
+type WarningResp struct {
+    Id int64 `json:"id"`
+    
+    Id_warning int64 `json:"id_warning"`    
+  
+    Response string `json:"resp_hash"`
+  
+    Message string `json:"message"`
+
+    ReplyTo string `json:"reply_to"`
+  
+    Ip string `json:"ip"`
+  
+    Browser string `json:"browser"`
+  
+    Operating_system string `json:"operating_system"`
+  
+    Device string `json:"device"`
+  
+    Raw string `json:"raw"`
+  
+    Created_date string `json:"created_date"`
+  
+    Reply_date string `json:"reply_date"`
+
+    Response_read string `json:"response_read"`
+  
+    Lang_key string `json:"lang_key"`
   
 }
