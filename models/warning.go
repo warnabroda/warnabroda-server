@@ -35,7 +35,7 @@ type Warning struct {
   
     Lang_key string `json:"lang_key"`
 
-    WarningResp `json:"warning_resp"`
+    WarnResp *WarningResp `json:"warning_resp" db:"-"`
   
 }
 
@@ -58,9 +58,13 @@ type Warn struct {
 type WarningResp struct {
     Id int64 `json:"id"`
     
-    Id_warning int64 `json:"id_warning"`    
+    Id_warning int64 `json:"id_warning"`
+
+    Id_contact_type int64 `json:"id_contact_type"`
   
-    Response string `json:"resp_hash"`
+    ResponseHash string `json:"resp_hash"`
+
+    ReadHash string `json:"read_hash"`
   
     Message string `json:"message"`
 

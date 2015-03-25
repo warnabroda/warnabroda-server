@@ -37,7 +37,7 @@ func init(){
 
 // For now all due verifications regarding send rules is done previewsly, here we just async the e-mail send of the warn
 //Deploys the message to be sent into an email struct, call the service and in case of successful send, update the warn as sent.
-func SendWhatsappWarning(entity *models.Warning, db gorp.SqlExecutor){
+func ProcessWhatsapp(entity *models.Warning, db gorp.SqlExecutor){
 
 	subject 	:= messages.GetLocaleMessage(entity.Lang_key,"MSG_HEADER_WHATSAPP")
 	message 	:= SelectMessage(db, entity.Id_message)
