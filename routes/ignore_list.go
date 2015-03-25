@@ -64,7 +64,7 @@ func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 		HTMLContent: true,
 	}	
 	
-	sent, response := SendMail(email, db)
+	sent, response := SendMail(email)
 	if sent {
 		entity.Message = response
 		UpdateIgnoreList(entity, db)
@@ -86,19 +86,12 @@ func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	    SendProject:"N",	    
 	}
 
-	sent, response := SendSMS(sms, db)
+	sent, response := SendSMS(sms)
 
 	if  sent {		
 		entity.Message = response
 		UpdateIgnoreList(entity, db)
 	}
-
-	go sendWhatsappIgnoreme(entity, db)
-}
-
-// send a Whatsapp msg with the confirmation code to confirm the ignored contact
-func sendWhatsappIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){	
-	SendWhatsappIgnoreRequest(entity, db)
 }
 
 // Add the request to be ignored for future warnings, it requires further confimation
@@ -155,9 +148,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 	} else if strings.Contains(entity.Contact, "+55"){
 		status.Name += " via SMS."
 		go sendSMSIgnoreme(&entity, db)
-	} else {
-		go sendWhatsappIgnoreme(&entity, db)
-	}
+	} 
 
 	
 		

@@ -126,6 +126,8 @@ func init() {
 
 	Dbm.AddTableWithName(MessageStruct{}, "messages").SetKeys(true, "Id")
 
+	Dbm.AddTableWithName(WarningResp{}, "warning_resp").SetKeys(true, "Id")
+
 	//Dbm.TraceOn("[gorp]", log.New(os.Stdout, "###Warn A Broda LOG:", log.Lmicroseconds))
 	err = Dbm.CreateTablesIfNotExists()
 	checkErr(err, "create tables failed")	

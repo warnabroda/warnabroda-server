@@ -5,7 +5,7 @@ import (
 	"strings"
 	"flag"
 	"os"
-	//"fmt"
+	// "fmt"
 	
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
 	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
@@ -37,19 +37,49 @@ func init(){
 
 // For now all due verifications regarding send rules is done previewsly, here we just async the e-mail send of the warn
 //Deploys the message to be sent into an email struct, call the service and in case of successful send, update the warn as sent.
-func SendWhatsappWarning(entity *models.Warning, db gorp.SqlExecutor){
+func ProcessWhatsapp(entity *models.Warning, db gorp.SqlExecutor){
+
+	var footer string
+	if entity.WarnResp != nil {
+		if entity.WarnResp.Id_contact_type == 1 {
+			go SendEmailReplyRequestAcknowledge(entity.WarnResp, db)
+		} else {
+			SendWhatsappReplyRequestAcknowledge(entity.WarnResp, db)
+		}
+		replyToLocaleMsg := messages.GetLocaleMessage(entity.Lang_key, "MSG_FOOTER_REPLY")
+		footer = strings.Replace(replyToLocaleMsg, "{{url_reply}}", models.URL_REPLY_TO + "/" + entity.WarnResp.Resp_hash, 1)
+	}
 
 	subject 	:= messages.GetLocaleMessage(entity.Lang_key,"MSG_HEADER_WHATSAPP")
 	message 	:= SelectMessage(db, entity.Id_message)
-	footer  	:= messages.GetLocaleMessage(entity.Lang_key,"MSG_FOOTER_WHATSAPP")
+	footer  	+= "\r\n"+messages.GetLocaleMessage(entity.Lang_key,"MSG_FOOTER_WHATSAPP")
 	
 	whatsMsg 	:= models.Whatsapp {
 		Id: entity.Id,
 		Number: strings.Replace(entity.Contact, "+", "", 1),
-		Message: subject + " :\r\n \r\n"+message.Name + ". \r\n \r\n"+footer,
+		Message: subject + " :\r\n \r\n"+message.Name + " \r\n \r\n"+footer,
+		Type: models.WHATSAPP_MSG_TYPE_WARNING,
 	}
+	//fmt.Println(whatsMsg)
 
 	sendWhatsapp(&whatsMsg)	
+}
+
+func SendWhatsappReplyRequestAcknowledge(entity *models.WarningResp, db gorp.SqlExecutor){
+	
+	
+	senderLocaleMsg := messages.GetLocaleMessage(entity.Lang_key, "MSG_REPLY_SENDER_MSG")
+	senderLocaleMsg = strings.Replace(senderLocaleMsg, "{{reply_to}}", entity.Reply_to, 1)
+	replyToWhatsMsg := models.Whatsapp{
+		Id: entity.Id,
+		Number: strings.Replace(entity.Reply_to, "+", "", 1),
+		Message: senderLocaleMsg,
+		Type: models.WHATSAPP_MSG_TYPE_REPLY,
+	}
+
+	//fmt.Println(replyToWhatsMsg)
+	sendWhatsapp(&replyToWhatsMsg)	
+
 }
 
 func SendWhatsappIgnoreRequest(entity *models.Ignore_List, db gorp.SqlExecutor){
@@ -61,6 +91,7 @@ func SendWhatsappIgnoreRequest(entity *models.Ignore_List, db gorp.SqlExecutor){
 		Id: -1*entity.Id,
 		Number: strings.Replace(entity.Contact, "+", "", 1),
 		Message: message + "... "+footer,
+		Type: models.WHATSAPP_MSG_TYPE_IGNORE,
 	}
 
 	sendWhatsapp(&whatsMsg)

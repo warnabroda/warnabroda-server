@@ -18,9 +18,11 @@ ALTER TABLE warnabroda.messages CHANGE COLUMN Id Id INT(11) NOT NULL AUTO_INCREM
 CREATE TABLE warning_resp (
   id bigint(20) NOT NULL AUTO_INCREMENT,
   id_warning bigint(20) DEFAULT NULL,
+  id_contact_type bigint(20) DEFAULT NULL,
   resp_hash varchar(255) DEFAULT NULL,
-  message text,
+  read_hash varchar(255) DEFAULT NULL,
   reply_to varchar(45) DEFAULT NULL,
+  message text,
   ip varchar(255) DEFAULT NULL,
   browser varchar(255) DEFAULT NULL,
   operating_system varchar(255) DEFAULT NULL,
@@ -33,3 +35,4 @@ CREATE TABLE warning_resp (
   PRIMARY KEY (id),
   UNIQUE KEY Id_UNIQUE (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+

@@ -1,13 +1,15 @@
 package routes
 
 import (
-	"io/ioutil"
 	"net/http"
+	"io/ioutil"
 	"net/url"
 	"os"
-	
-	"github.com/coopernurse/gorp"
+
+	"fmt"
+
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
+	"github.com/coopernurse/gorp"
 )
 
 const(
@@ -40,3 +42,37 @@ func CaptchaResponse(captcha models.Captcha, w http.ResponseWriter, enc Encoder,
 	
 	return http.StatusOK, string(robots[:])
 }
+
+func SendConfirmation(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecutor) (int, string) {	
+		
+	status 			:= &models.DefaultStruct{
+		Id:       	http.StatusNotFound,
+		Name:     	"Warning Update Failed.",
+		Lang_key: 	"en",
+	}
+
+	fmt.Println(entity.Type)
+
+	switch entity.Type {
+		case "warning":
+
+			warning 		:= GetWarning(entity.Id, db)
+			if warning != nil{
+				warning.Message 	= entity.Name
+				if UpdateWarningSent(warning, db) {
+					status.Id 			= http.StatusAccepted
+					status.Name 		= "Warning Update Success."
+					status.Lang_key 	= warning.Lang_key
+				}
+			}
+		case "ignore":
+			
+		case "reply":
+			
+	}
+
+	return http.StatusOK, Must(enc.EncodeOne(status))
+}
+
+
+

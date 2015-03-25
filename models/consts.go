@@ -8,5 +8,9 @@ const (
 	URL_DOMAIN_MOBILE_PRONTO	= "www.mpgateway.com"
 	URL_IGNOREME				= "www.warnabroda.com/#/ignoreme"
 	URL_CONTACT_US				= "www.warnabroda.com/#/contact"
+	URL_REPLY_TO				= "www.warnabroda.com/#/replyto"
 	EMAIL_WARNABRODA			= "warnabroda@gmail.com"
+	WHATSAPP_MSG_TYPE_WARNING	= "warning"
+	WHATSAPP_MSG_TYPE_IGNORE	= "ignore"
+	WHATSAPP_MSG_TYPE_REPLY		= "reply"
 )

@@ -1,11 +1,12 @@
 package routes
 
 import (
+	"crypto/sha1"
 	"net/http"
 	"strings"
 	"strconv"
 	"time"
-//	"fmt"
+	"fmt"
 //	"io/ioutil"
 //	"os"
 	
@@ -127,22 +128,17 @@ func ConfirmWarning(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecuto
 
 
 // Receives a warning tru, inserts the request and process the warning and then respond to the interface
-func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor) (int, string) {
-
+func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor, req *http.Request) (int, string) {
 	
 	status := &models.DefaultStruct{
 		Id:       http.StatusOK,
 		Name:     messages.GetLocaleMessage(entity.Lang_key,"MSG_WARNING_SENT_SUCCESS"),
 		Lang_key: entity.Lang_key,
-	}
-	
+	}	
 
 	entity.Sent = false
 	entity.Created_by = "system"
 	//entity.Created_date = time.Now().String()
-
-	
-	
 
 	err := db.Insert(&entity)
 	checkErr(err, "INSERT WARNING ERROR")
@@ -183,19 +179,54 @@ func processWarn(warning *models.Warning, db gorp.SqlExecutor, status *models.De
 		status.Id = http.StatusForbidden
 		status.Name = strings.Replace(messages.GetLocaleMessage(warning.Lang_key, "MSG_SMS_SAME_WARN_DIFF_IP"), "{{time}}", "2", 1)				
 	} else {
+		if warning.WarnResp.Reply_to != "" {
+			ProcessWarnReply(warning, db);
+		} else {
+			warning.WarnResp = nil
+		}
 
 		switch warning.Id_contact_type {
 			case 1:
-				ProcessEmail(warning, db)
+				go ProcessEmail(warning, db)
 			case 2:
 				ProcessSMS(warning, db, status)
 			case 3:
-				SendWhatsappWarning(warning, db)
+				go ProcessWhatsapp(warning, db)
 			default:
 				return
 		}
+
 		
 	}
+}
+
+func ProcessWarnReply(warning *models.Warning, db gorp.SqlExecutor){
+	
+	warning.WarnResp.Id_warning = warning.Id
+	warning.WarnResp.Lang_key = warning.Lang_key
+	warning.WarnResp.Resp_hash = GenerateSha1(warning.Contact + "-" + warning.Created_date)
+	warning.WarnResp.Read_hash = GenerateSha1(warning.WarnResp.Reply_to  + "-" +  warning.Created_date)
+	warning.WarnResp.Reply_to = warning.WarnResp.Reply_to
+	warning.WarnResp.Created_date = warning.Created_date
+	
+	if strings.Contains(warning.WarnResp.Reply_to, "@"){
+		warning.WarnResp.Id_contact_type = 1		
+	} else{
+		warning.WarnResp.Id_contact_type = 3
+	}	
+
+	err := db.Insert(warning.WarnResp)
+	checkErr(err, "INSERT WARNING ERROR")	
+	
+}
+
+func GenerateSha1(str string) string {
+	hash := sha1.New()
+	hash.Write([]byte(str))
+
+	byteStr := hash.Sum(nil)
+	
+	return fmt.Sprintf("%x", byteStr)
 }
 
 // return true if a warn, with same message and same ip, attempts to be sent, if so respond back to interface denying the service;

@@ -7,6 +7,7 @@ type DefaultStruct struct {
     Name string `json:"name"`  			// Name cast as string
     Lang_key string `json:"lang_key"`  	// Lang_key language used at Name field
     Active bool `json:"active"`
+    Type string `json:"type" db:"-"`
 }
 
 type MessageStruct struct {

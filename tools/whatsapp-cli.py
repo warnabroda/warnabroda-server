@@ -49,9 +49,10 @@ class WhatsappStompClientListener(object):
                 id = message["id"]
                 dest = message["number"]
                 msg = utf8(message["message"])
+                msg_type = message["type"]
                 sent = self.get_whatsap().send_msg(dest, msg)
                 LOG.debug("MSG SENT %s", sent)
-                self.send_confirmation(id, sent)
+                self.send_confirmation(id, sent, msg_type)
         except:
             LOG.info("Could not send message %s", message)
 
@@ -66,9 +67,9 @@ class WhatsappStompClientListener(object):
             self.credentials = (os.environ["WARNA_WHATSAPP_NUMBER"], os.environ["WARNA_WHATSAPP_PASS"])
         return self.credentials
 
-    def send_confirmation(self, msg_id, msg):
-        data = {"id":msg_id, "name":msg}
-        requests.post(url="http://localhost:3000/warnabroda/warning-confirm", data=json.dumps(data))
+    def send_confirmation(self, msg_id, msg, msg_type):
+        data = {"id":msg_id, "name":msg, "type": msg_type}
+        requests.post(url="http://localhost:3000/warnabroda/send-confirm", data=json.dumps(data))
         LOG.debug("Post sent")
 
 
