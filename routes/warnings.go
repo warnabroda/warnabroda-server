@@ -128,7 +128,8 @@ func ConfirmWarning(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecuto
 
 
 // Receives a warning tru, inserts the request and process the warning and then respond to the interface
-func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor, req *http.Request) (int, string) {
+
+func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor) (int, string) {
 	
 	status := &models.DefaultStruct{
 		Id:       http.StatusOK,
@@ -195,14 +196,14 @@ func processWarn(warning *models.Warning, db gorp.SqlExecutor, status *models.De
 			default:
 				return
 		}
-
-		
+	
 	}
 }
 
 func ProcessWarnReply(warning *models.Warning, db gorp.SqlExecutor){
 	
 	warning.WarnResp.Id_warning = warning.Id
+
 	warning.WarnResp.Lang_key = warning.Lang_key
 	warning.WarnResp.Resp_hash = GenerateSha1(warning.Contact + "-" + warning.Created_date)
 	warning.WarnResp.Read_hash = GenerateSha1(warning.WarnResp.Reply_to  + "-" +  warning.Created_date)
@@ -227,6 +228,7 @@ func GenerateSha1(str string) string {
 	byteStr := hash.Sum(nil)
 	
 	return fmt.Sprintf("%x", byteStr)
+
 }
 
 // return true if a warn, with same message and same ip, attempts to be sent, if so respond back to interface denying the service;
