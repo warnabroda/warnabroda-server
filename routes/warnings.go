@@ -442,7 +442,7 @@ func notifyReplyDone(entity *models.WarningResp, db gorp.SqlExecutor){
 }
 
 func isInvalidReplyRead(entity *models.WarningResp) bool {
-	return (entity.Id < 1) || (len(entity.Read_hash) < 10) || (len(entity.Ip) < 6)
+	return (entity.Id < 1) || (len(entity.Read_hash) < 10)
 }
 
 func ReadReply(entity models.WarningResp, enc Encoder, db gorp.SqlExecutor) (int, string){	

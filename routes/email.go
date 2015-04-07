@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"strings"
-	//"fmt"
+	// "fmt"
 
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
 	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
@@ -147,7 +147,7 @@ func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {
 		HTMLContent: true,
 	}	
 	
-	sent, response := SendMail(email)
+	sent, response := SendMail(email)	
 
 	if sent {
 		entity.Message = response
