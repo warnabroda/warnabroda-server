@@ -105,7 +105,7 @@ const (
 func init() {
 	log.Println("Opening db...")
 	var password = os.Getenv("WARNAPASS")
-	path := []string{"root:", password, "@(localhost:3306)/warnabroda_warn_return"}
+	path := []string{"root:", password, "@(localhost:3306)/warnabroda"}
 
 	db, err := sql.Open("mysql", strings.Join(path, ""))
 	checkErr(err, "opening db failed")
