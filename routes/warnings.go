@@ -13,6 +13,7 @@ import (
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
 	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
 	"github.com/martini-contrib/sessionauth"
+	"github.com/martini-contrib/sessions"
 	"github.com/go-martini/martini"	
 	"github.com/coopernurse/gorp"
 )
@@ -128,15 +129,25 @@ func ConfirmWarning(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecuto
 	return http.StatusOK, Must(enc.EncodeOne(status))
 }
 
+func isInvalidWarning(entity *models.Warning) bool {
+
+	return (entity.Id_message < 1)  || (entity.Id_contact_type < 1) || (len(entity.Contact) < 5) || (len(entity.Lang_key) < 2) || (len(entity.Ip) < 6)
+	
+}
 
 // Receives a warning tru, inserts the request and process the warning and then respond to the interface
-
+//TODO: use (session sessions.Session, r *http.Request) to prevent flood
 func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor) (int, string) {
+
+	if isInvalidWarning(&entity){
+		return http.StatusForbidden, Must(enc.EncodeOne(entity))
+	}
 	
 	status := &models.DefaultStruct{
-		Id:       http.StatusOK,
-		Name:     messages.GetLocaleMessage(entity.Lang_key,"MSG_WARNING_SENT_SUCCESS"),
-		Lang_key: entity.Lang_key,
+		Id:       	http.StatusOK,
+		Name:     	messages.GetLocaleMessage(entity.Lang_key,"MSG_WARNING_SENT_SUCCESS"),
+		Lang_key: 	entity.Lang_key,
+		Type: 		models.MSG_TYPE_WARNING,
 	}	
 
 	entity.Sent = false
@@ -146,7 +157,7 @@ func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor) (int, s
 	err := db.Insert(&entity)
 	checkErr(err, "INSERT WARNING ERROR")
 	if err != nil {
-		return http.StatusConflict, ""
+		return http.StatusForbidden, ""
 	}
 	
 
@@ -154,9 +165,10 @@ func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor) (int, s
 
 	if ingnored != nil && ingnored.Confirmed {
 		status = &models.DefaultStruct{
-			Id:       http.StatusForbidden,
-			Name:     messages.GetLocaleMessage(entity.Lang_key, "MSG_IGNORED_USER"),
-			Lang_key: entity.Lang_key,
+			Id:       	http.StatusForbidden,
+			Name:     	messages.GetLocaleMessage(entity.Lang_key, "MSG_IGNORED_USER"),
+			Lang_key: 	entity.Lang_key,
+			Type: 		models.MSG_TYPE_WARNING,
 		}
 	} else {
 		processWarn(&entity, db, status)
@@ -182,7 +194,7 @@ func processWarn(warning *models.Warning, db gorp.SqlExecutor, status *models.De
 		status.Id = http.StatusForbidden
 		status.Name = strings.Replace(messages.GetLocaleMessage(warning.Lang_key, "MSG_SMS_SAME_WARN_DIFF_IP"), "{{time}}", "2", 1)				
 	} else {
-		if warning.WarnResp.Reply_to != "" {
+		if warning.WarnResp != nil && warning.WarnResp.Reply_to != "" {
 			ProcessWarnReply(warning, db);
 		} else {
 			warning.WarnResp = nil
@@ -382,7 +394,15 @@ func clearReturn(entity *models.Warning) {
 	}
 }
 
+func isInvalidReply(entity *models.WarningResp) bool {
+	return (entity.Id < 1) || (len(entity.Resp_hash) < 10) || (len(entity.Ip) < 6)
+}
+
 func SetReply(entity models.WarningResp, enc Encoder, db gorp.SqlExecutor) (int, string){
+
+	if isInvalidReply(&entity) {
+		return http.StatusForbidden, Must(enc.EncodeOne(entity))
+	}
 		
 	obj, err := db.Get(models.WarningResp{}, entity.Id)
 	replyObj := obj.(*models.WarningResp)
@@ -422,9 +442,15 @@ func notifyReplyDone(entity *models.WarningResp, db gorp.SqlExecutor){
 	
 }
 
-func ReadReply(entity models.WarningResp, enc Encoder, db gorp.SqlExecutor) (int, string){
+func isInvalidReplyRead(entity *models.WarningResp) bool {
+	return (entity.Id < 1) || (len(entity.Read_hash) < 10) || (len(entity.Ip) < 6)
+}
+
+func ReadReply(entity models.WarningResp, enc Encoder, db gorp.SqlExecutor) (int, string){	
 	
-	fmt.Println(entity)
+	if isInvalidReplyRead(&entity){
+		return http.StatusForbidden, Must(enc.EncodeOne(entity))
+	}
 	
 	obj, err := db.Get(models.WarningResp{}, entity.Id)
 	replyObj := obj.(*models.WarningResp)
@@ -432,9 +458,7 @@ func ReadReply(entity models.WarningResp, enc Encoder, db gorp.SqlExecutor) (int
 	if err != nil || replyObj == nil || entity.Read_hash != replyObj.Read_hash{	
 		return http.StatusNotFound, ""
 	} else {
-		replyObj.Response_read = entity.Response_read		
-
-		go notifyReplyDone(replyObj, db)
+		replyObj.Response_read = entity.Response_read
 
 		_, err = db.Update(replyObj)
 		checkErr(err, "ERROR UpdateReplySent ERROR")	

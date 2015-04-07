@@ -10,7 +10,7 @@ const (
 	URL_CONTACT_US				= "www.warnabroda.com/#/contact"	
 	URL_REPLY 					= "www.warnabroda.com/#/reply"
 	EMAIL_WARNABRODA			= "warnabroda@gmail.com"
-	WHATSAPP_MSG_TYPE_WARNING	= "warning"
-	WHATSAPP_MSG_TYPE_IGNORE	= "ignore"
-	WHATSAPP_MSG_TYPE_REPLY		= "reply"
+	MSG_TYPE_WARNING			= "warning"
+	MSG_TYPE_IGNORE				= "ignore"
+	MSG_TYPE_REPLY				= "reply"
 )

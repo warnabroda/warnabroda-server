@@ -25,7 +25,7 @@ func HourlyTimer(){
 	
 	models.Dbm.Exec(SQL_REMOVE_OLD_IGNOREME_REQUESTS)
 	models.Dbm.Exec(SQL_LOGOFF_EXPIRED_SESSION_USERS)
-	//fmt.Println(sql)
+	
 	ticker := time.NewTicker(time.Hour)
 	quit := make(chan struct{})
 	go func() {
@@ -33,8 +33,7 @@ func HourlyTimer(){
 	       select {
 	        case <- ticker.C:	        	
 	            models.Dbm.Exec(SQL_REMOVE_OLD_IGNOREME_REQUESTS)
-	            models.Dbm.Exec(SQL_LOGOFF_EXPIRED_SESSION_USERS)
-	        	//fmt.Println(SQL_REMOVE_OLD_IGNOREME_REQUESTS)
+	            models.Dbm.Exec(SQL_LOGOFF_EXPIRED_SESSION_USERS)	        	
 	        case <- quit:
 	            ticker.Stop()
 	            return

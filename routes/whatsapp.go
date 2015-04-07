@@ -57,7 +57,7 @@ func ProcessWhatsapp(entity *models.Warning, db gorp.SqlExecutor){
 		Id: entity.Id,
 		Number: strings.Replace(entity.Contact, "+", "", 1),
 		Message: subject + " :\r\n \r\n"+message.Name + " \r\n \r\n"+footer,
-		Type: models.WHATSAPP_MSG_TYPE_WARNING,
+		Type: models.MSG_TYPE_WARNING,
 	}
 
 	sendWhatsapp(&whatsMsg)	
@@ -83,7 +83,7 @@ func SendWhatsappReplyDone(entity *models.Warning, db gorp.SqlExecutor){
 		Id: entity.WarnResp.Id,
 		Number: strings.Replace(entity.WarnResp.Reply_to, "+", "", 1),
 		Message: whatsappMsg, 
-		Type: models.WHATSAPP_MSG_TYPE_REPLY,
+		Type: models.MSG_TYPE_REPLY,
 	}
 	
 	sendWhatsapp(&whatsMsg)	
@@ -114,7 +114,7 @@ func SendWhatsappIgnoreRequest(entity *models.Ignore_List, db gorp.SqlExecutor){
 		Id: -1*entity.Id,
 		Number: strings.Replace(entity.Contact, "+", "", 1),
 		Message: message + "... "+footer,
-		Type: models.WHATSAPP_MSG_TYPE_IGNORE,
+		Type: models.MSG_TYPE_IGNORE,
 	}
 
 	sendWhatsapp(&whatsMsg)

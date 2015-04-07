@@ -94,20 +94,32 @@ func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor){
 	}
 }
 
+func isInvalidIgnoreList(entity *models.Ignore_List) bool {
+	
+	return (len(entity.Contact) < 5) || (len(entity.Lang_key) < 2) || (len(entity.Ip) < 6)
+	
+}
+
 // Add the request to be ignored for future warnings, it requires further confimation
 func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
+
+	if isInvalidIgnoreList(&entity){
+		return http.StatusForbidden, Must(enc.EncodeOne(entity))
+	}
 	
 	status := &models.DefaultStruct{
-			Id:       http.StatusOK,
-			Name:     messages.GetLocaleMessage(entity.Lang_key,"MSG_CONFIRM_IGNOREME"),
-			Lang_key: entity.Lang_key,
+			Id:       	http.StatusOK,
+			Name:     	messages.GetLocaleMessage(entity.Lang_key,"MSG_CONFIRM_IGNOREME"),
+			Lang_key: 	entity.Lang_key,
+			Type: 		models.MSG_TYPE_IGNORE,
 		}
 
 	if MoreThanTwoRequestByIp(db, &entity){
 		status = &models.DefaultStruct{
-			Id:       http.StatusForbidden,
-			Name:     messages.GetLocaleMessage(entity.Lang_key,"MSG_TOO_MANY_IGNOREME_REQUESTS"),
-			Lang_key: entity.Lang_key,
+			Id:       	http.StatusForbidden,
+			Name:     	messages.GetLocaleMessage(entity.Lang_key,"MSG_TOO_MANY_IGNOREME_REQUESTS"),
+			Lang_key: 	entity.Lang_key,
+			Type: 		models.MSG_TYPE_IGNORE,
 		}
 		return http.StatusCreated, Must(enc.EncodeOne(status))		
 	} 
@@ -156,8 +168,18 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 	return http.StatusCreated, Must(enc.EncodeOne(status))
 }
 
+func isInvalidIgnoreListConfirm(entity *models.Ignore_List) bool {
+	
+	return (len(entity.Contact) < 5) || (len(entity.Lang_key) < 2) || (len(entity.Ip) < 6) || (len(entity.Confirmation_code) < 6)
+	
+}
+
 // Confirm the request for ignore list
 func ConfirmIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
+
+	if isInvalidIgnoreListConfirm(&entity){
+		return http.StatusForbidden, Must(enc.EncodeOne(entity))
+	}
 	
 	status := &models.DefaultStruct{
 			Id:       http.StatusOK,
