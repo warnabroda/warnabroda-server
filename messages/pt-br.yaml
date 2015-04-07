@@ -28,3 +28,7 @@ MSG_SMS_IGNORE_CONFIRMATION_REQUEST		: "Pro Warn A Broda lhe ignorar, por favor 
 MSG_FOOTER_REPLY						: "Responda para seu Broda anônimo em {{url_reply}} "
 MSG_REPLY_SENDER_MSG					: "Olá Broda, você será avisado no {{reply_to}} quando houver resposta."
 MSG_SUBJECT_REPLY_REQUEST				: "Conforme sua solicitação"
+MSG_REPLY_BODY_GREETING					: "Olha que noticia massa!"
+MSG_REPLY_BODY_MAIN						: "Sabe o recado {{sent_msg}} que você enviou para o {{contact_msg}} ? Então..."
+MSG_REPLY_BODY_LINK						: "Foi respondido e pra você ver a resposta é só entrar em: "
+MSG_REPLY_EMAIL_SUBJECT					: "[Warn A Broda] - Seu Warn foi respondido"

@@ -50,6 +50,11 @@ func init() {
 		r.Post(`/ignore-list-confirm`, binding.Json(models.Ignore_List{}), routes.ConfirmIgnoreList)
 		r.Post(`/captcha-validate`, binding.Json(models.Captcha{}), routes.CaptchaResponse)
 
+		r.Get(`/get-reply/:hash`, routes.GetReplyByHash)
+		r.Post(`/set-reply`, binding.Json(models.WarningResp{}), routes.SetReply)
+		r.Post(`/read-reply`, binding.Json(models.WarningResp{}), routes.ReadReply)
+		
+
 		r.Group("/hq", func (r martini.Router){
 
 			r.Get(`/account/:id`, routes.GetUserById)	

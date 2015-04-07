@@ -87,5 +87,7 @@ type WarningResp struct {
     Response_read string `json:"response_read"`
   
     Lang_key string `json:"lang_key"`
+
+    Sent bool `json:"sent"`
   
 }

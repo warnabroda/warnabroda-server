@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 	"strconv"
+	//"fmt"
 	
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
 	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
@@ -10,7 +11,6 @@ import (
 	"github.com/martini-contrib/sessions"
 	"github.com/go-martini/martini"	
 	"github.com/coopernurse/gorp"
-	"fmt"
 	// "encoding/json"
 	// "strings"
 )
@@ -21,7 +21,6 @@ const (
 
 func GetUserById(enc Encoder, db gorp.SqlExecutor, user sessionauth.User, parms martini.Params) (int, string) {
 	
-	fmt.Println(parms)	
 	if user.IsAuthenticated(){
 		id, err := strconv.Atoi(parms["id"])	
 

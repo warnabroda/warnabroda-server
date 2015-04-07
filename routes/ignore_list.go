@@ -240,6 +240,17 @@ func GetIgnoreContact(db gorp.SqlExecutor, id string) *models.Ignore_List {
 	return &ignored
 }
 
+func GetIgnoreContactById(id int64, db gorp.SqlExecutor) *models.Ignore_List {
+	obj, err := db.Get(models.Ignore_List{}, id)
+
+	if err != nil || obj == nil {	
+		return nil
+	}
+
+	entity := obj.(*models.Ignore_List)
+	return entity
+}
+
 // intercepts more than two requests to ignore list add.
 func MoreThanTwoRequestByIp(db gorp.SqlExecutor, entity *models.Ignore_List) bool{
 
@@ -250,4 +261,12 @@ func MoreThanTwoRequestByIp(db gorp.SqlExecutor, entity *models.Ignore_List) boo
 
 	return total >= 2
 
+}
+
+func UpdateIgnoreSent(entity *models.Ignore_List, db gorp.SqlExecutor) bool {
+	entity.Sent = true
+	entity.Last_modified_date = time.Now().String()
+	_, err := db.Update(entity)
+	checkErr(err, "ERROR UpdateWarningSent ERROR")	
+	return err == nil
 }

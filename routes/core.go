@@ -5,8 +5,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
-
-	"fmt"
+	//"fmt"
 
 	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
 	"github.com/coopernurse/gorp"
@@ -51,8 +50,6 @@ func SendConfirmation(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecu
 		Lang_key: 	"en",
 	}
 
-	fmt.Println(entity.Type)
-
 	switch entity.Type {
 		case "warning":
 
@@ -66,8 +63,25 @@ func SendConfirmation(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecu
 				}
 			}
 		case "ignore":
+
+			ignoreItem 		:= GetIgnoreContactById(entity.Id, db)
+			if ignoreItem != nil{				
+				if UpdateIgnoreSent(ignoreItem, db) {
+					status.Id 			= http.StatusAccepted
+					status.Name 		= "IgnoreList Update Success."
+					status.Lang_key 	= ignoreItem.Lang_key
+				}
+			}
 			
 		case "reply":
+			reply 		:= GetReplyById(entity.Id, db)
+			if reply != nil{				
+				if UpdateReplySent(reply, db) {
+					status.Id 			= http.StatusAccepted
+					status.Name 		= "Reply Update Success."
+					status.Lang_key 	= reply.Lang_key
+				}
+			}
 			
 	}
 

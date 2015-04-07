@@ -19,8 +19,10 @@ import (
 
 const (
 	
-	SQL_WARNING_BYID			= "SELECT * FROM warnings ORDER BY id"
-	SQL_CHECK_SENT_WARN			= " SELECT COUNT(*) FROM warnings " + 
+	SQL_WARNING_BYID				= "SELECT * FROM warnings ORDER BY id"
+	SQL_SELECT_REPLY_BY_READ_HASH 	= "SELECT * FROM warning_resp WHERE read_hash = :hash"
+	SQL_SELECT_REPLY_BY_RESP_HASH 	= "SELECT * FROM warning_resp WHERE resp_hash = :hash"
+	SQL_CHECK_SENT_WARN				= "SELECT COUNT(*) FROM warnings " + 
 							  	" WHERE Id_contact_type = :id_contact_type AND Sent = true AND " + 							  	
 							  	" (Contact = :contact OR Ip LIKE :ip ) AND " +
 							  	" Created_date BETWEEN :lower_str_date AND :upper_str_date AND " + 
@@ -271,4 +273,173 @@ func warningsToIface(v []models.Warning) []interface{} {
 		ifs[i] = v
 	}
 	return ifs
+}
+
+func GetReplyById(id int64, db gorp.SqlExecutor) *models.WarningResp {
+	
+	obj, err := db.Get(models.WarningResp{}, id)
+
+	if err != nil || obj == nil {	
+		return nil
+	}
+
+	entity := obj.(*models.WarningResp)
+	return entity
+}
+
+func UpdateReplySent(entity *models.WarningResp, db gorp.SqlExecutor) bool {
+	entity.Sent = true
+	
+	_, err := db.Update(entity)
+	checkErr(err, "ERROR UpdateReplySent ERROR")	
+	return err == nil
+}
+
+func GetReplyByHash(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
+	
+	var warning *models.Warning
+	hash := parms["hash"]
+	
+	respReply := getReplyRespHash(hash, db)
+	readReply := getReplyReadHash(hash, db)
+	
+	if respReply == nil && readReply == nil {
+		fmt.Println("FAILED: neither resp or read hash matches")
+		return http.StatusNotFound, ""
+
+	} else if respReply != nil {
+		
+		
+		respReply.Read_hash = ""
+		warning = GetWarning(respReply.Id_warning ,db)
+		warning.WarnResp = respReply
+	
+	} else if readReply != nil {
+		
+		
+		readReply.Resp_hash = ""
+		warning = GetWarning(readReply.Id_warning ,db)
+		warning.WarnResp = readReply
+
+	}
+
+	clearReturn(warning)
+	
+	return http.StatusOK, Must(enc.EncodeOne(warning))
+		
+}
+
+func getReplyRespHash(hash string, db gorp.SqlExecutor) *models.WarningResp {
+
+	var reply models.WarningResp
+	err := db.SelectOne(&reply, SQL_SELECT_REPLY_BY_RESP_HASH, 
+		map[string]interface{}{
+	  		"hash": hash,
+		})
+	if err != nil {
+		return nil
+	}
+	
+	return &reply
+}
+
+func getReplyReadHash(hash string, db gorp.SqlExecutor) *models.WarningResp {
+	var reply models.WarningResp
+	err := db.SelectOne(&reply, SQL_SELECT_REPLY_BY_READ_HASH, 
+		map[string]interface{}{
+	  		"hash": hash,
+		})
+	if err != nil {
+		return nil
+	}
+	
+	return &reply
+}
+
+func clearReturn(entity *models.Warning) {
+	entity.Message = ""
+	entity.Ip = ""
+	entity.Browser = ""
+	entity.Operating_system = ""
+	entity.Device = ""
+	entity.Raw = ""
+	entity.Created_by = ""
+	entity.Last_modified_by = ""
+	entity.Last_modified_date = ""
+
+	entity.WarnResp.Reply_to = ""
+	entity.WarnResp.Ip = ""
+	entity.WarnResp.Browser = ""
+	entity.WarnResp.Operating_system = ""
+	entity.WarnResp.Device = ""
+	entity.WarnResp.Raw = ""
+	if entity.WarnResp.Reply_date == "0000-00-00 00:00:00" {
+		entity.WarnResp.Reply_date = "";
+	}
+
+	if entity.WarnResp.Response_read == "0000-00-00 00:00:00" {
+		entity.WarnResp.Response_read = "";	
+	}
+}
+
+func SetReply(entity models.WarningResp, enc Encoder, db gorp.SqlExecutor) (int, string){
+		
+	obj, err := db.Get(models.WarningResp{}, entity.Id)
+	replyObj := obj.(*models.WarningResp)
+
+	if err != nil || replyObj == nil || entity.Resp_hash != replyObj.Resp_hash{	
+		return http.StatusNotFound, ""
+	} else {
+		replyObj.Message 			= entity.Message
+		replyObj.Ip 				= entity.Ip
+		replyObj.Browser 			= entity.Browser
+		replyObj.Operating_system	= entity.Operating_system
+		replyObj.Device 			= entity.Device
+		replyObj.Raw 				= entity.Raw		
+		replyObj.Reply_date 		= entity.Reply_date		
+
+		go notifyReplyDone(replyObj, db)
+
+		_, err = db.Update(replyObj)
+		checkErr(err, "ERROR UpdateWarningSent ERROR")	
+	}
+	
+	return http.StatusOK, Must(enc.EncodeOne(replyObj))
+}
+
+func notifyReplyDone(entity *models.WarningResp, db gorp.SqlExecutor){
+	obj, err := db.Get(models.Warning{}, entity.Id_warning)
+	if err == nil { 
+		warningObj := obj.(*models.Warning)
+		warningObj.WarnResp = entity
+
+		if strings.Contains(entity.Reply_to, "@"){ //notify the reply is ready via e-mail
+			SendEmailReplyDone(warningObj, db)
+		}else { //notify the reply is ready via e-mail
+			SendWhatsappReplyDone(warningObj, db)
+		}
+	}
+	
+}
+
+func ReadReply(entity models.WarningResp, enc Encoder, db gorp.SqlExecutor) (int, string){
+	
+	fmt.Println(entity)
+	
+	obj, err := db.Get(models.WarningResp{}, entity.Id)
+	replyObj := obj.(*models.WarningResp)
+
+	if err != nil || replyObj == nil || entity.Read_hash != replyObj.Read_hash{	
+		return http.StatusNotFound, ""
+	} else {
+		replyObj.Response_read = entity.Response_read		
+
+		go notifyReplyDone(replyObj, db)
+
+		_, err = db.Update(replyObj)
+		checkErr(err, "ERROR UpdateReplySent ERROR")	
+	}
+	
+	return http.StatusOK, ""
+
 }

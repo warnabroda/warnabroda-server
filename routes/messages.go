@@ -64,7 +64,7 @@ func GetMessagesStats(enc Encoder, db gorp.SqlExecutor, user sessionauth.User) (
 
 func GetMessage(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	id, err := strconv.Atoi(parms["id"])
-		
+
 	if err != nil {		
 		// Invalid id, or does not exist
 		return http.StatusNotFound, ""
@@ -78,7 +78,6 @@ func GetMessage(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, st
 		// Invalid id, or does not exist
 		return http.StatusNotFound, ""
 	}
-	
 	return http.StatusOK, Must(enc.EncodeOne(obj))
 }
 
@@ -107,7 +106,6 @@ func AddMessage(entity models.DefaultStruct, w http.ResponseWriter, enc Encoder,
 
 func SaveOrUpdateMessage(entity models.MessageStruct, enc Encoder, db gorp.SqlExecutor, user sessionauth.User) (int, string) {
 
-	fmt.Println(entity)
 	if user.IsAuthenticated(){
 
 		entity.Last_modified_by = user.UniqueId().(int)

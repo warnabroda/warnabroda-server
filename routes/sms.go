@@ -57,21 +57,22 @@ func sendSMSWarn(entity *models.Warning, db gorp.SqlExecutor){
 	}
 
 	sent, response := SendSMS(sms)
-
+	
 	if  sent {
 		entity.Message = response
 		UpdateWarningSent(entity, db)
 	}
 
+	
 
 	if entity.WarnResp != nil {
 		if entity.WarnResp.Id_contact_type == 1 {
 			go SendEmailReplyRequestAcknowledge(entity.WarnResp, db)
 		} else {
-			SendWhatsappReplyRequestAcknowledge(entity.WarnResp, db)
+			go SendWhatsappReplyRequestAcknowledge(entity.WarnResp, db)
 		}
 		replyToLocaleMsg := messages.GetLocaleMessage(entity.Lang_key, "MSG_FOOTER_REPLY")
-		msg_reply_to := strings.Replace(replyToLocaleMsg, "{{url_reply}}", models.URL_REPLY_TO + "/" + entity.WarnResp.Resp_hash, 1)
+		msg_reply_to := strings.Replace(replyToLocaleMsg, "{{url_reply}}", models.URL_REPLY + "/" + entity.WarnResp.Resp_hash, 1)
 
 		smsReply := &models.SMS {
 			CredencialKey: os.Getenv("WARNACREDENCIAL"),  
@@ -86,6 +87,7 @@ func sendSMSWarn(entity *models.Warning, db gorp.SqlExecutor){
 		}
 
 		SendSMS(smsReply)
+		
 	}
 }
 
@@ -111,7 +113,7 @@ func SendSMS(sms *models.SMS) (bool, string) {
 
 	robots, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
-	 checkErr(err, "No response from SMS Sender")
+	checkErr(err, "No response from SMS Sender")
 	
 	return err == nil, string(robots[:])
 }

@@ -30,5 +30,7 @@ type Ignore_List struct {
     Message string `json:"message"`
 
     Lang_key string `json:"lang_key"`
+
+    Sent bool `json:"sent"`
     
 }
