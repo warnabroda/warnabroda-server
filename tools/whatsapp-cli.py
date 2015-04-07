@@ -1,5 +1,6 @@
 import os
 import logging
+import time
 
 from yowsup.demos import sendclient
 
@@ -90,7 +91,7 @@ if __name__ == "__main__":
 
     try:
         while True:
-            pass
+            time.sleep(.1)
     except:
         print "Vai desconectar"
     finally:
