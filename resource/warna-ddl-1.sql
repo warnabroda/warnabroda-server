@@ -13,7 +13,7 @@ UPDATE warnabroda.messages SET Last_modified_date=now();
 
 ALTER TABLE warnabroda.messages CHANGE COLUMN Id Id INT(11) NOT NULL AUTO_INCREMENT ;
 
-###Desenv da area de resposta 22-mar-2015
+###Desenv da area de resposta 22-mar-2015 
 
 CREATE TABLE warning_resp (
   id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -42,3 +42,11 @@ ADD COLUMN Sent TINYINT(1) NOT NULL DEFAULT '0' AFTER Lang_key;
 
 ALTER TABLE warning_resp 
 ADD COLUMN Sent TINYINT(1) NOT NULL DEFAULT '0' AFTER Lang_key;
+
+#=====COMMIT COMPLETE UP TO THIS POINT
+
+###Desenv da area de resposta 07-abr-2015
+
+ALTER TABLE warnings ADD COLUMN timezone VARCHAR(10) NOT NULL DEFAULT '180' AFTER Lang_key;
+ALTER TABLE warning_resp ADD COLUMN timezone VARCHAR(10) NOT NULL DEFAULT '180' AFTER Lang_key;
+ALTER TABLE ignore_list ADD COLUMN timezone VARCHAR(10) NOT NULL DEFAULT '180' AFTER Lang_key;

@@ -31,12 +31,14 @@ type Warning struct {
   
     Last_modified_by string `json:"last_modified_by"`
   
-    Last_modified_date string `json:"last_modified_date"`
-  
+    Last_modified_date string `json:"last_modified_date"`    
+
     Lang_key string `json:"lang_key"`
 
-    WarnResp *WarningResp `json:"warning_resp" db:"-"`
-  
+    Timezone string `json:"timezone"`
+
+    WarnResp *WarningResp `json:"warning_resp" db:"-"`  
+
 }
 
 
@@ -87,6 +89,8 @@ type WarningResp struct {
     Response_read string `json:"response_read"`
   
     Lang_key string `json:"lang_key"`
+
+    Timezone string `json:"timezone"`
 
     Sent bool `json:"sent"`
   

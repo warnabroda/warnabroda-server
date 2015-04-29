@@ -31,6 +31,8 @@ type Ignore_List struct {
 
     Lang_key string `json:"lang_key"`
 
+    Timezone string `json:"timezone"`
+
     Sent bool `json:"sent"`
     
 }

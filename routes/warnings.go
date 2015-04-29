@@ -136,7 +136,7 @@ func isInvalidWarning(entity *models.Warning) bool {
 
 // Receives a warning tru, inserts the request and process the warning and then respond to the interface
 //TODO: use (session sessions.Session, r *http.Request) to prevent flood
-func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor) (int, string) {
+func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor, r *http.Request) (int, string) {	
 
 	if isInvalidWarning(&entity){
 		return http.StatusForbidden, Must(enc.EncodeOne(entity))
@@ -415,7 +415,8 @@ func SetReply(entity models.WarningResp, enc Encoder, db gorp.SqlExecutor) (int,
 		replyObj.Operating_system	= entity.Operating_system
 		replyObj.Device 			= entity.Device
 		replyObj.Raw 				= entity.Raw		
-		replyObj.Reply_date 		= entity.Reply_date		
+		replyObj.Reply_date 		= entity.Reply_date
+		replyObj.Timezone	 		= entity.Timezone
 
 		go notifyReplyDone(replyObj, db)
 
