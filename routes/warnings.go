@@ -138,6 +138,11 @@ func isInvalidWarning(entity *models.Warning) bool {
 //TODO: use (session sessions.Session, r *http.Request) to prevent flood
 func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor, r *http.Request) (int, string) {	
 
+	fmt.Println("##########ENTIDADE#############")
+	fmt.Println(entity)
+	fmt.Println("##########REQUEST#############")
+	fmt.Println(r)
+	fmt.Println("############################")
 	if isInvalidWarning(&entity){
 		return http.StatusForbidden, Must(enc.EncodeOne(entity))
 	}
@@ -156,7 +161,7 @@ func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor, r *http
 	err := db.Insert(&entity)
 	checkErr(err, "INSERT WARNING ERROR")
 	if err != nil {
-		return http.StatusForbidden, ""
+		return http.StatusForbidden, Must(enc.EncodeOne(entity))
 	}
 	
 

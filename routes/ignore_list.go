@@ -170,7 +170,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 
 func isInvalidIgnoreListConfirm(entity *models.Ignore_List) bool {
 	
-	return (len(entity.Contact) < 5) || (len(entity.Lang_key) < 2) || (len(entity.Ip) < 6) || (len(entity.Confirmation_code) < 6)
+	return (len(entity.Lang_key) < 2) || (len(entity.Ip) < 6) || (len(entity.Confirmation_code) < 6)
 	
 }
 

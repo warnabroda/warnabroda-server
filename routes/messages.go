@@ -175,3 +175,6 @@ func messagesToIfaceM(v []models.Messages) []interface{} {
 	}
 	return ifs
 }
+
+//func getRandomMessagesByLanguage(int amount, string lang_key, db gorp.SqlExecutor) []models.Messages{
+//}
