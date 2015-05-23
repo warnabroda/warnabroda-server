@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"bitbucket.org/hbtsmith/warnabrodagomartini/routes"
+	"warnabrodagomartini/models"
+	"warnabrodagomartini/routes"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/binding"	

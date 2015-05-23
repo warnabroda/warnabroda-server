@@ -3,7 +3,7 @@ package routes
 import (
 	"time"	
 
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
+	"warnabrodagomartini/models"
 //	"fmt"	
 )
 

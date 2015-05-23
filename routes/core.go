@@ -7,7 +7,7 @@ import (
 	"os"
 	//"fmt"
 
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
+	"warnabrodagomartini/models"	
 	"github.com/coopernurse/gorp"
 )
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/coopernurse/gorp"	
 	"github.com/martini-contrib/sessionauth"
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
+	"warnabrodagomartini/models"
 	// "fmt"
 )
 

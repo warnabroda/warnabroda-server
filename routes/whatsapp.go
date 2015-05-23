@@ -7,8 +7,8 @@ import (
 	"os"
 	//"fmt"
 	
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"
-	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
+	"warnabrodagomartini/models"
+	"warnabrodagomartini/messages"
 	"github.com/coopernurse/gorp"	
 	"github.com/jjeffery/stomp"
 )

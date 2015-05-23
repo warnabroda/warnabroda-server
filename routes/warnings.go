@@ -10,8 +10,8 @@ import (
 //	"io/ioutil"
 //	"os"
 	
-	"bitbucket.org/hbtsmith/warnabrodagomartini/models"	
-	"bitbucket.org/hbtsmith/warnabrodagomartini/messages"
+	"warnabrodagomartini/models"	
+	"warnabrodagomartini/messages"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/go-martini/martini"	
 	"github.com/coopernurse/gorp"
