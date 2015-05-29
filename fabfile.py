@@ -6,7 +6,7 @@ project_path = "src/bi"
 
 def deploy():
 	path = run("echo $GOPATH")
-	path = os.path.join(path, "src", "warnabrodagomartini")
+	path = os.path.join(path, "src", "gitlab.com", "warnabroda", "warnabrodagomartini")
 	with cd(path):
 		run("git pull")
 		run("go get")
@@ -18,7 +18,7 @@ def deploy():
 
 def deploy_tools():
 	path = run("echo $GOPATH")
-	path = os.path.join(path, "src", "warnabrodagomartini")
+	path = os.path.join(path, "src", "gitlab.com", "warnabroda", "warnabrodagomartini")
 	with cd(path):
 		run("git pull")
 		run("cp tools/* /opt/warnabroda/project/server/tools")

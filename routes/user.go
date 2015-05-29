@@ -4,30 +4,30 @@ import (
 	"net/http"
 	"strconv"
 	//"fmt"
-	
-	"warnabrodagomartini/models"
-	"warnabrodagomartini/messages"
+
+	"github.com/coopernurse/gorp"
+	"github.com/go-martini/martini"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
-	"github.com/go-martini/martini"	
-	"github.com/coopernurse/gorp"
+	"gitlab.com/warnabroda/warnabrodagomartini/messages"
+	"gitlab.com/warnabroda/warnabrodagomartini/models"
 	// "encoding/json"
 	// "strings"
 )
 
 const (
-	SQL_LOGIN				= "SELECT * FROM users WHERE (username = :user OR email = :user) AND password = :pass "	
+	SQL_LOGIN = "SELECT * FROM users WHERE (username = :user OR email = :user) AND password = :pass "
 )
 
 func GetUserById(enc Encoder, db gorp.SqlExecutor, user sessionauth.User, parms martini.Params) (int, string) {
-	
-	if user.IsAuthenticated(){
-		id, err := strconv.Atoi(parms["id"])	
+
+	if user.IsAuthenticated() {
+		id, err := strconv.Atoi(parms["id"])
 
 		if err != nil {
 			return http.StatusNotFound, ""
 		}
-		
+
 		entity := UserById(id, db)
 
 		return http.StatusOK, Must(enc.EncodeOne(entity))
@@ -37,7 +37,7 @@ func GetUserById(enc Encoder, db gorp.SqlExecutor, user sessionauth.User, parms 
 }
 
 func UserById(id int, db gorp.SqlExecutor) *models.User {
-	
+
 	obj, err := db.Get(models.User{}, id)
 	if err != nil {
 		return nil
@@ -47,95 +47,92 @@ func UserById(id int, db gorp.SqlExecutor) *models.User {
 	return entity
 }
 
-func GetUserByLogin(postedUser models.UserLogin, db gorp.SqlExecutor) *models.User {	
+func GetUserByLogin(postedUser models.UserLogin, db gorp.SqlExecutor) *models.User {
 
 	user := models.User{}
 
-	db.SelectOne(&user, SQL_LOGIN,  
+	db.SelectOne(&user, SQL_LOGIN,
 		map[string]interface{}{
-	  		"user": postedUser.Username,
-	  		"pass": postedUser.Password,
+			"user": postedUser.Username,
+			"pass": postedUser.Password,
 		})
-
 
 	return &user
 }
 
-func DoLogin(entity models.UserLogin, session sessions.Session, enc Encoder, db gorp.SqlExecutor) (int, string){
-	
+func DoLogin(entity models.UserLogin, session sessions.Session, enc Encoder, db gorp.SqlExecutor) (int, string) {
+
 	status := &models.DefaultStruct{
-			Id:       http.StatusUnauthorized,
-			Name:     messages.GetLocaleMessage("en","MSG_LOGIN_INVALID"),
-			Lang_key: "en",
-		}
-		
+		Id:       http.StatusUnauthorized,
+		Name:     messages.GetLocaleMessage("en", "MSG_LOGIN_INVALID"),
+		Lang_key: "en",
+	}
+
 	user := GetUserByLogin(entity, db)
 
 	if user.Name != "" {
 
 		err := sessionauth.AuthenticateSession(session, user)
 		if err != nil {
-			status.Name = messages.GetLocaleMessage("en","MSG_SESSION_INIT_ERROR")
+			status.Name = messages.GetLocaleMessage("en", "MSG_SESSION_INIT_ERROR")
 			return http.StatusForbidden, Must(enc.EncodeOne(status))
 		}
-		user.Authenticated = true	
+		user.Authenticated = true
 		user.UpdateLastLogin()
-		status.Name = messages.GetLocaleMessage("en","MSG_SUCCESSFUL_LOGIN")
-		return http.StatusOK, Must(enc.EncodeOne(user))		
-	
-	} else {		
-	
+		status.Name = messages.GetLocaleMessage("en", "MSG_SUCCESSFUL_LOGIN")
+		return http.StatusOK, Must(enc.EncodeOne(user))
+
+	} else {
+
 		sessionauth.Logout(session, user)
 		session.Clear()
 		return http.StatusForbidden, Must(enc.EncodeOne(status))
-	
+
 	}
 
 	return http.StatusForbidden, Must(enc.EncodeOne(status))
 }
 
-func IsAuthenticated(enc Encoder, user sessionauth.User) (int, string) {	
+func IsAuthenticated(enc Encoder, user sessionauth.User) (int, string) {
 
-	if user.IsAuthenticated(){
-		return http.StatusOK,  ""
+	if user.IsAuthenticated() {
+		return http.StatusOK, ""
 	}
 
-
-	return http.StatusUnauthorized,  Must(enc.EncodeOne(user))
+	return http.StatusUnauthorized, Must(enc.EncodeOne(user))
 }
 
 func DoLogout(enc Encoder, session sessions.Session, user sessionauth.User, db gorp.SqlExecutor) (int, string) {
 
 	status := &models.DefaultStruct{
-			Id:       http.StatusOK,
-			Name:     messages.GetLocaleMessage("en","MSG_LOGIN_REQUIRED"),
-			Lang_key: "en",
-		}
+		Id:       http.StatusOK,
+		Name:     messages.GetLocaleMessage("en", "MSG_LOGIN_REQUIRED"),
+		Lang_key: "en",
+	}
 
 	if user.IsAuthenticated() {
 
 		sessionauth.Logout(session, user)
 		session.Clear()
-		status.Name = messages.GetLocaleMessage("en","MSG_SUCCESSFUL_LOGOUT")
-	}	
+		status.Name = messages.GetLocaleMessage("en", "MSG_SUCCESSFUL_LOGOUT")
+	}
 
 	updateUser := UserById(user.UniqueId().(int), db)
 
 	updateUser.Authenticated = false
 	db.Update(updateUser)
 
-	return http.StatusOK,  Must(enc.EncodeOne(status))
+	return http.StatusOK, Must(enc.EncodeOne(status))
 }
 
-
 func GetAuthenticatedUser(enc Encoder, user sessionauth.User, db gorp.SqlExecutor) (int, string) {
-	
+
 	if user.IsAuthenticated() {
 
 		authUser := UserById(user.UniqueId().(int), db)
 
-		return http.StatusOK,  Must(enc.EncodeOne(authUser))
-	} 
+		return http.StatusOK, Must(enc.EncodeOne(authUser))
+	}
 
-	return http.StatusUnauthorized,  Must(enc.EncodeOne(user))
+	return http.StatusUnauthorized, Must(enc.EncodeOne(user))
 }

@@ -1,13 +1,13 @@
 package main
 
 import (
-	"warnabrodagomartini/models"
-	"warnabrodagomartini/routes"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/binding"	
+	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
+	"gitlab.com/warnabroda/warnabrodagomartini/models"
+	"gitlab.com/warnabroda/warnabrodagomartini/routes"
 	// "github.com/martini-contrib/strict"
 	"net/http"
 	"regexp"
@@ -37,9 +37,9 @@ func init() {
 
 	m.Use(sessions.Sessions("admin_session", store))
 	m.Use(sessionauth.SessionUser(models.GenerateAnonymousUser))
-	sessionauth.RedirectUrl = "/hq"	
+	sessionauth.RedirectUrl = "/hq"
 
-	r.Group("/warnabroda", func (r martini.Router){
+	r.Group("/warnabroda", func(r martini.Router) {
 		r.Get(`/messages/:lang_key`, routes.GetMessages)
 		r.Get(`/contact_types`, routes.GetContact_types)
 		r.Get(`/subjects`, routes.GetSubjects)
@@ -53,11 +53,10 @@ func init() {
 		r.Get(`/get-reply/:hash`, routes.GetReplyByHash)
 		r.Post(`/set-reply`, binding.Json(models.WarningResp{}), routes.SetReply)
 		r.Post(`/read-reply`, binding.Json(models.WarningResp{}), routes.ReadReply)
-		
 
-		r.Group("/hq", func (r martini.Router){
+		r.Group("/hq", func(r martini.Router) {
 
-			r.Get(`/account/:id`, routes.GetUserById)	
+			r.Get(`/account/:id`, routes.GetUserById)
 			r.Get(`/private`, routes.IsAuthenticated)
 
 			r.Get(`/logout`, routes.DoLogout)
@@ -69,12 +68,10 @@ func init() {
 			r.Get(`/list-warnings`, binding.Json(models.Warn{}), routes.ListWarnings)
 			r.Get(`/warning/:id`, routes.GetWarningDetail)
 			r.Get(`/messages-stats`, routes.GetMessagesStats)
-			
+
 			r.Get(`/messages/:id`, routes.GetMessage)
 			r.Post(`/messages`, binding.Json(models.MessageStruct{}), routes.SaveOrUpdateMessage)
-			
-			
-			
+
 		})
 
 	})
@@ -82,7 +79,7 @@ func init() {
 	// Inject database
 	m.MapTo(models.Dbm, (*gorp.SqlExecutor)(nil))
 	// Add the router action
-	m.Action(r.Handle)	
+	m.Action(r.Handle)
 }
 
 // The regex to check for the requested format (allows an optional trailing

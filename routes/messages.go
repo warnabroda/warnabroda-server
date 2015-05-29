@@ -5,57 +5,56 @@ import (
 	"net/http"
 	"strconv"
 
-	"warnabrodagomartini/models"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/sessionauth"
+	"gitlab.com/warnabroda/warnabrodagomartini/models"
 )
 
 const (
-	SQL_MESSAGES_BY_LANG_KEY	= "SELECT id, name, lang_key, active FROM messages WHERE lang_key=? AND active=true ORDER BY name"
-	SQL_MESSAGES_BY_ID			= "SELECT id, name, lang_key, active FROM messages WHERE id=?"
-	SQL_MESSAGES_ALL			= "SELECT " +
-								" 	DISTINCT(m.name) as name, " +
-								"	m.id as id, " +
-								"	m.lang_key as lang_key, 	" +
-								"	m.active as active, 	" +
-								"	COUNT(w.id) as total, " +
-								"	(SELECT COUNT(*) FROM warnings ww WHERE ww.sent = false AND ww.Id_message = m.id) AS not_sent, " +
-								"	(SELECT COUNT(*) FROM warnings www WHERE www.sent = true AND www.Id_message = m.id) AS sent, " +
-								"	(SELECT COUNT(*) FROM warnings wwww WHERE wwww.Id_contact_type = 1 AND wwww.Id_message = m.id) AS email, " +
-								"	(SELECT COUNT(*) FROM warnings wwwww WHERE wwwww.Id_contact_type = 2 AND wwwww.Id_message = m.id) AS sms, " +
-								"	(SELECT COUNT(*) FROM warnings wwwwww WHERE wwwwww.Id_contact_type = 3 AND wwwwww.Id_message = m.id) AS whatsapp " +
-								" FROM messages m " +
-								" LEFT JOIN warnings w on w.id_message = m.id " +
-								" GROUP BY m.name " +
-								" ORDER BY total DESC, m.Lang_key DESC, m.name ASC "
-
+	SQL_MESSAGES_BY_LANG_KEY = "SELECT id, name, lang_key, active FROM messages WHERE lang_key=? AND active=true ORDER BY name"
+	SQL_MESSAGES_BY_ID       = "SELECT id, name, lang_key, active FROM messages WHERE id=?"
+	SQL_MESSAGES_ALL         = "SELECT " +
+		" 	DISTINCT(m.name) as name, " +
+		"	m.id as id, " +
+		"	m.lang_key as lang_key, 	" +
+		"	m.active as active, 	" +
+		"	COUNT(w.id) as total, " +
+		"	(SELECT COUNT(*) FROM warnings ww WHERE ww.sent = false AND ww.Id_message = m.id) AS not_sent, " +
+		"	(SELECT COUNT(*) FROM warnings www WHERE www.sent = true AND www.Id_message = m.id) AS sent, " +
+		"	(SELECT COUNT(*) FROM warnings wwww WHERE wwww.Id_contact_type = 1 AND wwww.Id_message = m.id) AS email, " +
+		"	(SELECT COUNT(*) FROM warnings wwwww WHERE wwwww.Id_contact_type = 2 AND wwwww.Id_message = m.id) AS sms, " +
+		"	(SELECT COUNT(*) FROM warnings wwwwww WHERE wwwwww.Id_contact_type = 3 AND wwwwww.Id_message = m.id) AS whatsapp " +
+		" FROM messages m " +
+		" LEFT JOIN warnings w on w.id_message = m.id " +
+		" GROUP BY m.name " +
+		" ORDER BY total DESC, m.Lang_key DESC, m.name ASC "
 )
 
 func GetMessages(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
-	var messages []models.DefaultStruct	
+	var messages []models.DefaultStruct
 	lang_key := parms["lang_key"]
-		
+
 	_, err := db.Select(&messages, SQL_MESSAGES_BY_LANG_KEY, lang_key)
 	if err != nil {
 		checkErr(err, "select failed")
 		return http.StatusInternalServerError, ""
 	}
-	
+
 	return http.StatusOK, Must(enc.Encode(messagesToIface(messages)...))
 }
 
 func GetMessagesStats(enc Encoder, db gorp.SqlExecutor, user sessionauth.User) (int, string) {
 
-	if user.IsAuthenticated(){
+	if user.IsAuthenticated() {
 		var messages []models.Messages
-			
+
 		_, err := db.Select(&messages, SQL_MESSAGES_ALL)
 		if err != nil {
 			checkErr(err, "select failed")
 			return http.StatusInternalServerError, ""
 		}
-		
+
 		return http.StatusOK, Must(enc.Encode(messagesToIfaceM(messages)...))
 	}
 
@@ -65,7 +64,7 @@ func GetMessagesStats(enc Encoder, db gorp.SqlExecutor, user sessionauth.User) (
 func GetMessage(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	id, err := strconv.Atoi(parms["id"])
 
-	if err != nil {		
+	if err != nil {
 		// Invalid id, or does not exist
 		return http.StatusNotFound, ""
 	}
@@ -106,11 +105,11 @@ func AddMessage(entity models.DefaultStruct, w http.ResponseWriter, enc Encoder,
 
 func SaveOrUpdateMessage(entity models.MessageStruct, enc Encoder, db gorp.SqlExecutor, user sessionauth.User) (int, string) {
 
-	if user.IsAuthenticated(){
+	if user.IsAuthenticated() {
 
 		entity.Last_modified_by = user.UniqueId().(int)
 
-		if (entity.Id < 1){
+		if entity.Id < 1 {
 			err := db.Insert(&entity)
 			if err != nil {
 				checkErr(err, "insert failed")
@@ -119,17 +118,17 @@ func SaveOrUpdateMessage(entity models.MessageStruct, enc Encoder, db gorp.SqlEx
 		} else {
 			obj, _ := db.Get(models.MessageStruct{}, entity.Id)
 			if obj == nil {
-					// Invalid id, or does not exist
+				// Invalid id, or does not exist
 				return http.StatusNotFound, ""
-			}			
-				
+			}
+
 			_, err := db.Update(&entity)
 			if err != nil {
 				checkErr(err, "update failed")
 				return http.StatusConflict, ""
 			}
 		}
-		
+
 		return http.StatusOK, Must(enc.EncodeOne(entity))
 
 	}

@@ -5,53 +5,53 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	
-	"warnabrodagomartini/models"	
-	"warnabrodagomartini/messages"
+
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
+	"gitlab.com/warnabroda/warnabrodagomartini/messages"
+	"gitlab.com/warnabroda/warnabrodagomartini/models"
 )
 
 const (
-	SQL_SELECT_SUBJECTS_BY_ID 		= "SELECT * FROM subjects ORDER BY Id"	
-	SQL_SELECT_SUBJECTS_BY_LANG_KEY	= "SELECT * FROM subjects WHERE lang_key = ? ORDER BY Id"	
+	SQL_SELECT_SUBJECTS_BY_ID       = "SELECT * FROM subjects ORDER BY Id"
+	SQL_SELECT_SUBJECTS_BY_LANG_KEY = "SELECT * FROM subjects WHERE lang_key = ? ORDER BY Id"
 )
 
-func GetSubjectsByLangKey(lang_key string) []models.DefaultStruct{
+func GetSubjectsByLangKey(lang_key string) []models.DefaultStruct {
 
 	var subjects []models.DefaultStruct
 	_, err := models.Dbm.Select(&subjects, SQL_SELECT_SUBJECTS_BY_LANG_KEY, lang_key)
 	if err != nil {
 		checkErr(err, "SELECT ERROR")
-	} 
+	}
 
 	return subjects
 }
 
 // Get a random subject from the previews loaded upon containers startup
-func GetRandomSubject(lang_key string) models.DefaultStruct {		
-	
-	 var subject models.DefaultStruct
+func GetRandomSubject(lang_key string) models.DefaultStruct {
+
+	var subject models.DefaultStruct
 
 	subjects := GetSubjectsByLangKey(lang_key)
 
 	// r := rand.New(rand.NewSource(99))
-	rand.Seed(time.Now().UTC().UnixNano())	
-	
-	 if len(subjects) > 0 {
-				
-	 	var index = rand.Intn(len(subjects))
-		
-	 	if index < len(subjects) {
-	 		subject = subjects[index]
-	 	} else {
-	 		subject = subjects[0]
-	 	}
+	rand.Seed(time.Now().UTC().UnixNano())
 
-	 } else {
-		
+	if len(subjects) > 0 {
+
+		var index = rand.Intn(len(subjects))
+
+		if index < len(subjects) {
+			subject = subjects[index]
+		} else {
+			subject = subjects[0]
+		}
+
+	} else {
+
 		subject = models.DefaultStruct{0, messages.GetLocaleMessage(lang_key, "MSG_DEFAULT_SUBJECT"), lang_key, true, ""}
-	 }
+	}
 
 	return subject
 }
