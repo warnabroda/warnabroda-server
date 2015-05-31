@@ -13,4 +13,5 @@ const (
 	MSG_TYPE_WARNING			= "warning"
 	MSG_TYPE_IGNORE				= "ignore"
 	MSG_TYPE_REPLY				= "reply"
+	URL_WARNABRODA				= "www.warnabroda.com"
 )

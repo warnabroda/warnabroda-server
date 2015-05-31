@@ -29,6 +29,10 @@ const (
 		" LEFT JOIN warnings w on w.id_message = m.id " +
 		" GROUP BY m.name " +
 		" ORDER BY total DESC, m.Lang_key DESC, m.name ASC "
+	SQL_RANDOM_MESSAGES = " SELECT m.id, m.name, m.lang_key, m.active FROM warnabroda.messages AS m JOIN  " +
+		" (SELECT CEIL(RAND() * (SELECT MAX(id) FROM warnabroda.messages)) AS id) AS m2 " +
+		" WHERE m.lang_key=? AND m.active=true AND m.id >= m2.id " +
+		" ORDER BY m.id ASC LIMIT 7 "
 )
 
 func GetMessages(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
@@ -38,7 +42,7 @@ func GetMessages(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, s
 	_, err := db.Select(&messages, SQL_MESSAGES_BY_LANG_KEY, lang_key)
 	if err != nil {
 		checkErr(err, "select failed")
-		return http.StatusInternalServerError, ""
+		return http.StatusBadRequest, ""
 	}
 
 	return http.StatusOK, Must(enc.Encode(messagesToIface(messages)...))
@@ -52,7 +56,7 @@ func GetMessagesStats(enc Encoder, db gorp.SqlExecutor, user sessionauth.User) (
 		_, err := db.Select(&messages, SQL_MESSAGES_ALL)
 		if err != nil {
 			checkErr(err, "select failed")
-			return http.StatusInternalServerError, ""
+			return http.StatusBadRequest, ""
 		}
 
 		return http.StatusOK, Must(enc.Encode(messagesToIfaceM(messages)...))
@@ -66,7 +70,7 @@ func GetMessage(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, st
 
 	if err != nil {
 		// Invalid id, or does not exist
-		return http.StatusNotFound, ""
+		return http.StatusBadRequest, ""
 	}
 
 	obj := models.MessageStruct{}
@@ -75,7 +79,7 @@ func GetMessage(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, st
 	if err != nil {
 		checkErr(err, "get failed")
 		// Invalid id, or does not exist
-		return http.StatusNotFound, ""
+		return http.StatusBadRequest, ""
 	}
 	return http.StatusOK, Must(enc.EncodeOne(obj))
 }
@@ -97,7 +101,7 @@ func AddMessage(entity models.DefaultStruct, w http.ResponseWriter, enc Encoder,
 	err := db.Insert(&entity)
 	if err != nil {
 		checkErr(err, "insert failed")
-		return http.StatusConflict, ""
+		return http.StatusBadRequest, ""
 	}
 	w.Header().Set("Location", fmt.Sprintf("/warnabroda/messages/%d", entity.Id))
 	return http.StatusCreated, Must(enc.EncodeOne(entity))
@@ -113,19 +117,19 @@ func SaveOrUpdateMessage(entity models.MessageStruct, enc Encoder, db gorp.SqlEx
 			err := db.Insert(&entity)
 			if err != nil {
 				checkErr(err, "insert failed")
-				return http.StatusForbidden, ""
+				return http.StatusBadRequest, ""
 			}
 		} else {
 			obj, _ := db.Get(models.MessageStruct{}, entity.Id)
 			if obj == nil {
 				// Invalid id, or does not exist
-				return http.StatusNotFound, ""
+				return http.StatusBadRequest, ""
 			}
 
 			_, err := db.Update(&entity)
 			if err != nil {
 				checkErr(err, "update failed")
-				return http.StatusConflict, ""
+				return http.StatusBadRequest, ""
 			}
 		}
 
@@ -142,15 +146,15 @@ func DeleteMessage(db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	if err != nil || obj == nil {
 		checkErr(err, "get failed")
 		// Invalid id, or does not exist
-		return http.StatusNotFound, ""
+		return http.StatusBadRequest, ""
 	}
 	entity := obj.(*models.DefaultStruct)
 	_, err = db.Delete(entity)
 	if err != nil {
 		checkErr(err, "delete failed")
-		return http.StatusConflict, ""
+		return http.StatusBadRequest, ""
 	}
-	return http.StatusNoContent, ""
+	return http.StatusOK, ""
 }
 
 func messagesToIface(v []models.DefaultStruct) []interface{} {
@@ -175,5 +179,16 @@ func messagesToIfaceM(v []models.Messages) []interface{} {
 	return ifs
 }
 
-//func getRandomMessagesByLanguage(int amount, string lang_key, db gorp.SqlExecutor) []models.Messages{
-//}
+func GetRandomMessagesByLanguage(amount int, lang_key string, db gorp.SqlExecutor) []models.DefaultStruct {
+	var messages []models.DefaultStruct
+	_, err := db.Select(&messages, SQL_RANDOM_MESSAGES, lang_key)
+
+	for len(messages) != amount {
+		_, err = db.Select(&messages, SQL_RANDOM_MESSAGES, lang_key)
+		if err != nil {
+			break
+		}
+	}
+
+	return messages
+}

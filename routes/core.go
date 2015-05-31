@@ -5,16 +5,20 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	//"fmt"
+	// "fmt"
+	"bytes"
+	"encoding/json"
 
 	"github.com/coopernurse/gorp"
 	"gitlab.com/warnabroda/warnabrodagomartini/models"
 )
 
 const (
-	GOOGLE_CAPTCHA_URL = "https://www.google.com/recaptcha/api/siteverify?"
-	SCHEME             = "https"
-	HOST               = "www.google.com"
+	GOOGLE_SHORTNER_URL = "https://www.googleapis.com/urlshortener/v1/url?"
+	GOOGLE_CAPTCHA_URL  = "https://www.google.com/recaptcha/api/siteverify?"
+	SCHEME              = "https"
+	HOST                = "www.google.com"
+	API_HOST            = "www.googleapis.com"
 )
 
 // Get google's captcha response
@@ -44,7 +48,7 @@ func CaptchaResponse(captcha models.Captcha, w http.ResponseWriter, enc Encoder,
 func SendConfirmation(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecutor) (int, string) {
 
 	status := &models.DefaultStruct{
-		Id:       http.StatusNotFound,
+		Id:       http.StatusBadRequest,
 		Name:     "Warning Update Failed.",
 		Lang_key: "en",
 	}
@@ -85,4 +89,28 @@ func SendConfirmation(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecu
 	}
 
 	return http.StatusOK, Must(enc.EncodeOne(status))
+}
+
+func ShortUrl(longLink string) string {
+	u, err := url.Parse(GOOGLE_SHORTNER_URL)
+	checkErr(err, "Ugly URL")
+
+	u.Scheme = SCHEME
+	u.Host = API_HOST
+	q := u.Query()
+
+	q.Set("key", "AIzaSyB_ZX0ebsr5RxV8UvfPZlC6Obp3i3dqemw")
+
+	u.RawQuery = q.Encode()
+
+	res, err := http.Post(u.String(), "application/json", bytes.NewReader([]byte(`{"longUrl":"`+longLink+`"}`)))
+
+	body, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	checkErr(err, "No response from Google Captcha Server")
+
+	var data models.GoogleShortner
+	err = json.Unmarshal(body, &data)
+
+	return data.Id
 }

@@ -71,7 +71,7 @@ class WhatsappStompClientListener(object):
 
     def send_confirmation(self, msg_id, msg, msg_type):
         data = {"id":msg_id, "name":msg, "type": msg_type}
-        requests.post(url="http://localhost:3000/warnabroda/send-confirm", data=json.dumps(data))
+        requests.post(url="http://localhost:3000/warnabroda/warnings/delivery", data=json.dumps(data))
         LOG.debug("Post sent")
 
 

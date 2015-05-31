@@ -37,41 +37,48 @@ func init() {
 
 	m.Use(sessions.Sessions("admin_session", store))
 	m.Use(sessionauth.SessionUser(models.GenerateAnonymousUser))
-	sessionauth.RedirectUrl = "/hq"
+	sessionauth.RedirectUrl = "/hq"	
 
-	r.Group("/warnabroda", func(r martini.Router) {
+	r.Group("/warnabroda", func (r martini.Router){
+		
 		r.Get(`/messages/:lang_key`, routes.GetMessages)
 		r.Get(`/contact_types`, routes.GetContact_types)
 		r.Get(`/subjects`, routes.GetSubjects)
-		r.Get(`/count-sent-warnings`, routes.CountSentWarnings)
+		r.Post(`/captcha`, binding.Json(models.Captcha{}), routes.CaptchaResponse)
+		
 		r.Post(`/warnings`, binding.Json(models.Warning{}), routes.AddWarning)
-		r.Post(`/send-confirm`, binding.Json(models.DefaultStruct{}), routes.SendConfirmation)
+		r.Get(`/warnings/counter`, routes.CountSentWarnings)
+		r.Post(`/warnings/delivery`, binding.Json(models.DefaultStruct{}), routes.SendConfirmation)
+		
 		r.Post(`/ignore-list`, binding.Json(models.Ignore_List{}), routes.AddIgnoreList)
-		r.Post(`/ignore-list-confirm`, binding.Json(models.Ignore_List{}), routes.ConfirmIgnoreList)
-		r.Post(`/captcha-validate`, binding.Json(models.Captcha{}), routes.CaptchaResponse)
+		r.Put(`/ignore-list`, binding.Json(models.Ignore_List{}), routes.ConfirmIgnoreList)
+		
+		r.Get(`/reply/:hash`, routes.GetReplyByHash)
+		r.Post(`/reply`, binding.Json(models.WarningResp{}), routes.SetReply)
+		r.Put(`/reply`, binding.Json(models.WarningResp{}), routes.ReadReply)
+		
 
-		r.Get(`/get-reply/:hash`, routes.GetReplyByHash)
-		r.Post(`/set-reply`, binding.Json(models.WarningResp{}), routes.SetReply)
-		r.Post(`/read-reply`, binding.Json(models.WarningResp{}), routes.ReadReply)
+		r.Group("/hq", func (r martini.Router){
 
-		r.Group("/hq", func(r martini.Router) {
-
-			r.Get(`/account/:id`, routes.GetUserById)
-			r.Get(`/private`, routes.IsAuthenticated)
-
+			r.Get(`/auth-on`, routes.GetAuthenticatedUser)
+			r.Post(`/login`, binding.Json(models.UserLogin{}), routes.DoLogin)
 			r.Get(`/logout`, routes.DoLogout)
+			r.Get(`/user/private`, routes.IsAuthenticated)
+			
+			r.Get(`/account/:id`, routes.GetUserById)	
 
-			r.Get(`/authenticated-user`, routes.GetAuthenticatedUser)
+			r.Get(`/totals`, routes.WarnaCounter)
 
-			r.Post(`/authentication`, binding.Json(models.UserLogin{}), routes.DoLogin)
-			r.Get(`/count-warnings`, routes.CountWarns)
-			r.Get(`/list-warnings`, binding.Json(models.Warn{}), routes.ListWarnings)
-			r.Get(`/warning/:id`, routes.GetWarningDetail)
-			r.Get(`/messages-stats`, routes.GetMessagesStats)
 
-			r.Get(`/messages/:id`, routes.GetMessage)
+			r.Get(`/warnings`, binding.Json(models.Warn{}), routes.ListWarnings)
+			r.Get(`/warnings/:id`, routes.GetWarningDetail)
+			
 			r.Post(`/messages`, binding.Json(models.MessageStruct{}), routes.SaveOrUpdateMessage)
-
+			r.Get(`/messages/:id`, routes.GetMessage)
+			r.Get(`/stats`, routes.GetMessagesStats)
+			
+			
+			
 		})
 
 	})
@@ -79,7 +86,7 @@ func init() {
 	// Inject database
 	m.MapTo(models.Dbm, (*gorp.SqlExecutor)(nil))
 	// Add the router action
-	m.Action(r.Handle)
+	m.Action(r.Handle)	
 }
 
 // The regex to check for the requested format (allows an optional trailing

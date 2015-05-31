@@ -1,14 +1,12 @@
 package routes
 
 import (
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
-	//	"fmt"
 
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
@@ -34,39 +32,6 @@ func randomString(l int) string {
 // Generate random number based upon a min and max range
 func randInt(min int, max int) int {
 	return min + rand.Intn(max-min)
-}
-
-// opens the template, parse the variables sets the email struct and Send the confirmation code to confirm the ignored contact.
-func sendEmailIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor) {
-	//reads the e-mail template from a local file
-	wab_email_template := wab_root + "/resource/ignoreme_" + entity.Lang_key + ".html"
-	template_byte, err := ioutil.ReadFile(wab_email_template)
-	checkErr(err, "Ignore-me Email File Opening ERROR")
-	template_email_string := string(template_byte[:])
-
-	var email_content string
-	email_content = strings.Replace(template_email_string, "{{code}}", entity.Confirmation_code, 1)
-	email_content = strings.Replace(email_content, "{{url_ignoreme}}", models.URL_IGNOREME, 2)
-	email_content = strings.Replace(email_content, "{{url_contacus}}", models.URL_CONTACT_US, 1)
-	email_content = strings.Replace(email_content, "{{email}}", models.EMAIL_WARNABRODA, 2)
-
-	email := &models.Email{
-		TemplatePath: wab_email_template,
-		Content:      email_content,
-		Subject:      messages.GetLocaleMessage(entity.Lang_key, "MSG_EMAIL_SUBJECT_ADD_IGNORE_LIST"),
-		ToAddress:    entity.Contact,
-		FromName:     models.WARN_A_BRODA,
-		LangKey:      entity.Lang_key,
-		Async:        false,
-		UseContent:   true,
-		HTMLContent:  true,
-	}
-
-	sent, response := SendMail(email)
-	if sent {
-		entity.Message = response
-		UpdateIgnoreList(entity, db)
-	}
 }
 
 // send a SMS with the confirmation code to confirm the ignored contact
@@ -102,7 +67,7 @@ func isInvalidIgnoreList(entity *models.Ignore_List) bool {
 func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 
 	if isInvalidIgnoreList(&entity) {
-		return http.StatusForbidden, Must(enc.EncodeOne(entity))
+		return http.StatusBadRequest, Must(enc.EncodeOne(entity))
 	}
 
 	status := &models.DefaultStruct{
@@ -114,7 +79,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 
 	if MoreThanTwoRequestByIp(db, &entity) {
 		status = &models.DefaultStruct{
-			Id:       http.StatusForbidden,
+			Id:       http.StatusBadRequest,
 			Name:     messages.GetLocaleMessage(entity.Lang_key, "MSG_TOO_MANY_IGNOREME_REQUESTS"),
 			Lang_key: entity.Lang_key,
 			Type:     models.MSG_TYPE_IGNORE,
@@ -127,7 +92,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 	if ingnored != nil && ingnored.Confirmed {
 
 		status = &models.DefaultStruct{
-			Id:       http.StatusForbidden,
+			Id:       http.StatusBadRequest,
 			Name:     messages.GetLocaleMessage(entity.Lang_key, "MSG_CONTACT_ALREADY_IGNORED"),
 			Lang_key: entity.Lang_key,
 		}
@@ -136,7 +101,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 
 	} else if ingnored != nil {
 		status = &models.DefaultStruct{
-			Id:       http.StatusForbidden,
+			Id:       http.StatusBadRequest,
 			Name:     messages.GetLocaleMessage(entity.Lang_key, "MSG_IGNORE_REQUEST_EXISTS"),
 			Lang_key: entity.Lang_key,
 		}
@@ -154,7 +119,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 
 	if strings.Contains(entity.Contact, "@") {
 		status.Name += " via e-mail."
-		go sendEmailIgnoreme(&entity, db)
+		go SendEmailIgnoreme(&entity, db)
 	} else if strings.Contains(entity.Contact, "+55") {
 		status.Name += " via SMS."
 		go sendSMSIgnoreme(&entity, db)
@@ -174,7 +139,7 @@ func isInvalidIgnoreListConfirm(entity *models.Ignore_List) bool {
 func ConfirmIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
 
 	if isInvalidIgnoreListConfirm(&entity) {
-		return http.StatusForbidden, Must(enc.EncodeOne(entity))
+		return http.StatusBadRequest, Must(enc.EncodeOne(entity))
 	}
 
 	status := &models.DefaultStruct{
@@ -191,7 +156,7 @@ func ConfirmIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Enc
 		UpdateIgnoreList(ignored, db)
 	} else {
 		status = &models.DefaultStruct{
-			Id:       http.StatusForbidden,
+			Id:       http.StatusBadRequest,
 			Name:     messages.GetLocaleMessage(entity.Lang_key, "MSG_IGNOREME_CODE_INVALID"),
 			Lang_key: entity.Lang_key,
 		}
@@ -206,15 +171,15 @@ func DeleteIgnoreList(db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	if err != nil || obj == nil {
 		checkErr(err, "get failed")
 		// Invalid id, or does not exist
-		return http.StatusNotFound, ""
+		return http.StatusBadRequest, ""
 	}
 	entity := obj.(*models.Ignore_List)
 	_, err = db.Delete(entity)
 	if err != nil {
 		checkErr(err, "delete failed")
-		return http.StatusConflict, ""
+		return http.StatusBadRequest, ""
 	}
-	return http.StatusNoContent, ""
+	return http.StatusOK, ""
 }
 
 func UpdateIgnoreList(entity *models.Ignore_List, db gorp.SqlExecutor) {

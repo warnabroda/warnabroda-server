@@ -592,6 +592,11 @@ body.outlook p {
   display: inline !important;
 }
 
+p.terms {
+  color: #b2be35;
+  font-style: italic;
+  font-size: 10px;
+}
 /*  Media Queries */
 
 @media only screen and (max-width: 600px) {
@@ -834,7 +839,7 @@ body.outlook p {
                           <td>
                             <h2>{{subject}}</h2>
                             <p>                            
-                              <br>Você acaba de receber um WARN de um amigo:
+                              <br>{{broda_msg_header_greet}}
                             </p>
                             
                           </td>
@@ -857,27 +862,10 @@ body.outlook p {
                           <td class="expander"></td>
                           <td>
                             <br>
-                            <p>Warn A Broda, avise anonimamente, você também</p>
+                            <p>{{broda_msg_footer_greet}}</p>
                           </td>
                         </tr>
-                      </table>
-
-                      <table class="six columns">
-                        <tr>
-                          <td>
-                            <br>
-                            <table class="button reply-button">
-                              <tr>
-                                <td>
-                                  <a href="http://www.warnabroda.com">Responda o broda!</a>
-                                </td>
-                              </tr>
-                            </table>
-
-                          </td>
-                          <td class="expander"></td>
-                        </tr>
-                      </table>
+                      </table>                      
 
                       <table class="six columns">
                         <tr>
@@ -902,11 +890,11 @@ body.outlook p {
                       <table class="six columns">
                         <tr>
                           <td class="panel">
-                            <h6  style="text-align:center; margin-bottom:5px;">Quem avisa amigo é</h6>
+                            <h6  style="text-align:center; margin-bottom:5px;">{{warnabroda_headline}}</h6>
                             <table>
                               <tr>
                                 <td>
-                                  <a href="http://www.warnabroda.com">{{suggest_msg1}} &raquo;</a>
+                                  <a href="{{suggest_link1}}">{{suggest_msg1}} &raquo;</a>
                                 </td>
                               </tr>
                             </table>
@@ -914,7 +902,7 @@ body.outlook p {
                             <table>
                               <tr>
                                 <td>
-                                  <a href="http://www.warnabroda.com">{{suggest_msg2}} &raquo;</a>
+                                  <a href="{{suggest_link2}}">{{suggest_msg2}} &raquo;</a>
                                 </td>
                               </tr>
                             </table>
@@ -922,7 +910,7 @@ body.outlook p {
                             <table>
                               <tr>
                                 <td>
-                                  <a href="http://www.warnabroda.com">{{suggest_msg3}} &raquo;</a>
+                                  <a href="{{suggest_link3}}">{{suggest_msg3}} &raquo;</a>
                                 </td>
                               </tr>
                             </table>
@@ -930,7 +918,7 @@ body.outlook p {
                             <table>
                               <tr>
                                 <td>
-                                  <a href="http://www.warnabroda.com">{{suggest_msg4}} &raquo;</a>
+                                  <a href="{{suggest_link4}}">{{suggest_msg4}} &raquo;</a>
                                 </td>
                               </tr>
                             </table>
@@ -938,7 +926,7 @@ body.outlook p {
                             <table>
                               <tr>
                                 <td>
-                                  <a href="http://www.warnabroda.com">{{suggest_msg5}} &raquo;</a>
+                                  <a href="{{suggest_link5}}">{{suggest_msg5}} &raquo;</a>
                                 </td>
                               </tr>
                             </table>
@@ -946,7 +934,7 @@ body.outlook p {
                             <table>
                               <tr>
                                 <td>
-                                  <a href="http://www.warnabroda.com">{{suggest_msg6}} &raquo;</a>
+                                  <a href="{{suggest_link6}}">{{suggest_msg6}} &raquo;</a>
                                 </td>
                               </tr>
                             </table>
@@ -954,7 +942,7 @@ body.outlook p {
                             <table>
                               <tr>
                                 <td>
-                                  <a href="http://www.warnabroda.com">{{suggest_msg7}} &raquo;</a>
+                                  <a href="{{suggest_link7}}">{{suggest_msg7}} &raquo;</a>
                                 </td>
                               </tr>
                             </table>
@@ -968,7 +956,7 @@ body.outlook p {
                       <table class="six columns">
                         <tr>
                           <td class="panel">
-                            <h6 style="text-align:center; margin-bottom:5px;">Acompanhe</h6>
+                            <h6 style="text-align:center; margin-bottom:5px;">{{follow_us}}</h6>
                             <table class="tiny-button facebook">
                               <tr>
                                 <td>
@@ -1000,7 +988,7 @@ body.outlook p {
                         <tr>
                           <td align="center">
                             <center>
-                              <p style="text-align:center;"><a href="#">Terms</a> | <a href="#">Privacy</a> | <a href="#">Unsubscribe</a></p>
+                              <p style="text-align:center;" class="terms">{{terms}}</p>
                             </center>
                           </td>
                           <td class="expander"></td>
