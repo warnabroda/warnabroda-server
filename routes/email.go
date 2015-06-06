@@ -174,7 +174,7 @@ func sendWarningSetup(email string, entity *models.Warning, db gorp.SqlExecutor)
 		if entity.WarnResp.Id_contact_type == 1 {
 			SendEmailReplyRequestAcknowledge(entity.WarnResp, db)
 		} else {
-			SendWhatsappReplyRequestAcknowledge(entity.WarnResp, db)
+			SendWhatsappReplyRequestAcknowledge(entity, db)
 		}
 
 		email_content = strings.Replace(email_content, "{{reply_url}}", ShortUrl(models.URL_REPLY+"/"+entity.WarnResp.Resp_hash), 1)

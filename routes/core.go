@@ -1,16 +1,27 @@
 package routes
 
 import (
+	"bytes"
+	"encoding/json"
+	//"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
-	// "fmt"
-	"bytes"
-	"encoding/json"
+	//	"time"
 
 	"github.com/coopernurse/gorp"
 	"gitlab.com/warnabroda/warnabrodagomartini/models"
+	"gopkg.in/redis.v3"
+)
+
+var (
+	GoogleShortUrlKey = os.Getenv("WARNA_GOOGLE_SHORTURL_KEY")
+	client            = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
 )
 
 const (
@@ -19,7 +30,52 @@ const (
 	SCHEME              = "https"
 	HOST                = "www.google.com"
 	API_HOST            = "www.googleapis.com"
+	DISTINCT_PHONE_SQL  = " SELECT distinct wr.reply_to AS contact FROM warning_resp AS wr WHERE wr.id_contact_type <> 1 "
 )
+
+func init() {
+	LoadPhoneRegis()
+}
+
+func LoadPhoneRegis() {
+	var phones []string
+	_, err := models.Dbm.Select(&phones, DISTINCT_PHONE_SQL)
+
+	_, erredis := client.Ping().Result()
+
+	if err == nil && erredis == nil {
+		i := 0
+		for i < len(phones) {
+			//fmt.Println()
+			err := client.Set(phones[i], "true", 0).Err()
+			if err != nil {
+				checkErr(err, "Fail loading Redis data")
+			}
+			i++
+		}
+	}
+
+	//	val, err := client.Get("+55489666201554").Result()
+	//	if err != nil {
+	//		fmt.Println("É dá erro mesmo")
+	//		fmt.Println(val)
+	//		fmt.Println(err)
+	//	}
+	//	fmt.Println("+55489666201554", val)
+
+}
+
+func AddPhoneToRedis(phone string) {
+	err := client.Set(phone, "true", 0).Err()
+	if err != nil {
+		checkErr(err, "Fail loading Redis data")
+	}
+}
+
+func IsLoadedInRedis(phone string) bool {
+	val, err := client.Get(phone).Result()
+	return val != "" && err == nil
+}
 
 // Get google's captcha response
 func CaptchaResponse(captcha models.Captcha, w http.ResponseWriter, enc Encoder, db gorp.SqlExecutor) (int, string) {
@@ -99,7 +155,7 @@ func ShortUrl(longLink string) string {
 	u.Host = API_HOST
 	q := u.Query()
 
-	q.Set("key", "AIzaSyB_ZX0ebsr5RxV8UvfPZlC6Obp3i3dqemw")
+	q.Set("key", GoogleShortUrlKey)
 
 	u.RawQuery = q.Encode()
 
