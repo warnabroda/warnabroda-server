@@ -15,7 +15,7 @@ ALTER TABLE warnabroda.messages CHANGE COLUMN Id Id INT(11) NOT NULL AUTO_INCREM
 
 ###Desenv da area de resposta 22-mar-2015 
 
-CREATE TABLE warning_resp (
+CREATE TABLE IF NOT EXISTS warning_resp (
   id bigint(20) NOT NULL AUTO_INCREMENT,
   id_warning bigint(20) DEFAULT NULL,
   id_contact_type bigint(20) DEFAULT NULL,

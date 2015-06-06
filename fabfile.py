@@ -12,9 +12,9 @@ def deploy():
 		run("go get")
 		run("go build")
 		run("cp -f warnabrodagomartini /opt/warnabroda/project/server/server")
-		run("cp -f tools /opt/warnabroda/project/server/tools")
+		run("cp -f tools/* /opt/warnabroda/project/server/tools")
 		run("cp -f resource/* /opt/warnabroda/project/server/resource")
-		run("cp -f messages/*yaml /opt/warnabroda/project/server/messages")
+		run("cp -f messages/*yaml /opt/warnabroda/project/server/messagess")
 
 def deploy_tools():
 	path = run("echo $GOPATH")
@@ -30,7 +30,7 @@ def restart():
 
 
 def deploy_view():
-	with cd("view"):
+	with cd("warnabrodaview"):
 		run("git pull")
 		run("grunt build")
 		run("mv dist/ /opt/warnabroda/project/view/dist_new")
