@@ -110,7 +110,7 @@ func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {
 		UseContent:   true,
 		HTMLContent:  true,
 	}
-	// fmt.Println(email)
+
 	SendMail(email)
 	sent, response := SendMail(email)
 

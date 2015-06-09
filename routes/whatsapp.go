@@ -3,7 +3,7 @@ package routes
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
+	//"fmt"
 	"os"
 	"strings"
 
@@ -67,8 +67,6 @@ func ProcessWhatsapp(entity *models.Warning, db gorp.SqlExecutor) {
 		message += strings.Replace(messages.GetLocaleMessage(entity.Lang_key, "MSG_WHATSAPP_FOOTER_FIRSTTIMER"), "{{url_ignoreme}}", models.URL_IGNORE_REQUEST+"/"+entity.Contact, 1)
 
 	}
-
-	fmt.Println(message)
 
 	AddPhoneToRedis(entity.Contact)
 

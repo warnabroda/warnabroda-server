@@ -46,7 +46,7 @@ func LoadPhoneRegis() {
 	if err == nil && erredis == nil {
 		i := 0
 		for i < len(phones) {
-			//fmt.Println()
+
 			err := client.Set(phones[i], "true", 0).Err()
 			if err != nil {
 				checkErr(err, "Fail loading Redis data")
@@ -54,14 +54,6 @@ func LoadPhoneRegis() {
 			i++
 		}
 	}
-
-	//	val, err := client.Get("+55489666201554").Result()
-	//	if err != nil {
-	//		fmt.Println("É dá erro mesmo")
-	//		fmt.Println(val)
-	//		fmt.Println(err)
-	//	}
-	//	fmt.Println("+55489666201554", val)
 
 }
 
