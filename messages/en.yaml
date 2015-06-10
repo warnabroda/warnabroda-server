@@ -48,3 +48,4 @@ MSG_WHATSAPP_HEADER_FIRSTTIMER			: "Hey How are things going? We hope awesomely!
 MSG_WHATSAPP_REPLY_FIRSTTIMER			: "You can also reply to your broda at: "
 MSG_WHATSAPP_FOOTER_FIRSTTIMER			: "If you do not want to receive absolutely nothing from 'Warn A Broda' we ask you kindly please add your contact to our ignore list at {{url_ignoreme}} and we promise you we will never bother you again!"
 MSG_WHATSAPP_REPLY_REQUEST				: "Hi, when the message \r\n \r\n '{{msg}}' \r\n \r\n that you sent to \r\n \r\n {{contact}} \r\n \r\n get a reply, you will be poked here. \r\n \r\nMessage code: "
+MSG_WHATSAPP_WITHOUT_REPLY				: "How about sending an anonymous message you too? www.warnabroda.com "

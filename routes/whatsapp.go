@@ -48,6 +48,9 @@ func ProcessWhatsapp(entity *models.Warning, db gorp.SqlExecutor) {
 
 			processReply(entity, db)
 
+		} else {
+			message += messages.GetLocaleMessage(entity.Lang_key, "MSG_WHATSAPP_WITHOUT_REPLY") + "\r\n"
+
 		}
 
 		message += strings.Replace(messages.GetLocaleMessage(entity.Lang_key, "MSG_WHATSAPP_FOOTER_DEFAULT"), "{{url_ignoreme}}", models.URL_IGNORE_REQUEST+"/"+entity.Contact, 1)
