@@ -28,12 +28,3 @@ def deploy_tools():
 def restart():
 	run("supervisorctl restart server")
 
-
-def deploy_view():
-	with cd("warnabrodaview"):
-		run("git pull")
-		run("grunt build")
-		run("mv dist/ /opt/warnabroda/project/view/dist_new")
-		run("rm -rf /opt/warnabroda/project/view/dist_old")
-		run("mv /opt/warnabroda/project/view/dist /opt/warnabroda/project/view/dist_old")
-		run("mv /opt/warnabroda/project/view/dist_new /opt/warnabroda/project/view/dist")
