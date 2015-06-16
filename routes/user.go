@@ -21,7 +21,9 @@ const (
 
 func GetUserById(enc Encoder, db gorp.SqlExecutor, user sessionauth.User, parms martini.Params) (int, string) {
 
-	if user.IsAuthenticated() {
+	u := models.GetAuthenticatedUser(user)
+
+	if user.IsAuthenticated() && u.UserRole == models.ROLE_ADMIN {
 		id, err := strconv.Atoi(parms["id"])
 
 		if err != nil {
@@ -95,7 +97,9 @@ func DoLogin(entity models.UserLogin, session sessions.Session, enc Encoder, db 
 
 func IsAuthenticated(enc Encoder, user sessionauth.User) (int, string) {
 
-	if user.IsAuthenticated() {
+	u := models.GetAuthenticatedUser(user)
+
+	if user.IsAuthenticated() && u.UserRole == models.ROLE_ADMIN {
 		return http.StatusOK, ""
 	}
 

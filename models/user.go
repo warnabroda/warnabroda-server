@@ -1,31 +1,31 @@
 package models
 
-import (	
+import (
 	"github.com/martini-contrib/sessionauth"
 	"time"
 )
 
 // Represents the AUTHENTICATED User and it should be use throughout the Login Required areas
 type User struct {
-	Id            	int  `json:"id" db:"id"`
-	Username      	string `json:"username" db:"username"`
-	Password      	string `json:"-" db:"password"`
-	Name			string `json:"name" db:"name"`
-	Email			string `json:"email" db:"email"`
-	Last_login		string `json:"last_login" db:"last_login"`
-	User_hole 		string `json:"user_hole" db:"user_hole"`
-	Authenticated 	bool   `json:"authenticated" db:"authenticated"`
+	Id            int    `json:"id" db:"id"`
+	Username      string `json:"username" db:"username"`
+	Password      string `json:"-" db:"password"`
+	Name          string `json:"name" db:"name"`
+	Email         string `json:"email" db:"email"`
+	Last_login    string `json:"last_login" db:"last_login"`
+	UserRole      string `json:"user_role" db:"user_role"`
+	Authenticated bool   `json:"authenticated" db:"authenticated"`
 }
 
 // Represent only the user structure sent by login request
 type UserLogin struct {
-	Username      	 string `json:"username" form:"username"`
-	Password      	 string `json:"password" form:"password"`
-	Ip 				 string `json:"ip" form:"ip"`  
-    Browser 		 string `json:"browser" form:"browser"`  
-    Operating_system string `json:"operating_system" form:"operating_system"`  
-    Device 			 string `json:"device" form:"device"`  
-    Raw 			 string `json:"raw" form:"raw"`
+	Username         string `json:"username" form:"username"`
+	Password         string `json:"password" form:"password"`
+	Ip               string `json:"ip" form:"ip"`
+	Browser          string `json:"browser" form:"browser"`
+	Operating_system string `json:"operating_system" form:"operating_system"`
+	Device           string `json:"device" form:"device"`
+	Raw              string `json:"raw" form:"raw"`
 }
 
 // GetAnonymousUser should generate an anonymous user model
@@ -51,7 +51,7 @@ func (u *User) Logout() {
 	u.Authenticated = false
 }
 
-// Flag used to check whether a user is authenticated or not at login required areas 
+// Flag used to check whether a user is authenticated or not at login required areas
 func (u *User) IsAuthenticated() bool {
 	return u.Authenticated
 }
@@ -72,8 +72,19 @@ func (u *User) GetById(id interface{}) error {
 	return nil
 }
 
+func GetAuthenticatedUser(user sessionauth.User) *User {
+	u := &User{}
+
+	err := Dbm.SelectOne(u, "SELECT * FROM users WHERE id = ?", user.UniqueId())
+	if err != nil {
+		return nil
+	}
+
+	return u
+}
+
 // Should be called every time a successful login occurs
-func (u *User) UpdateLastLogin(){
+func (u *User) UpdateLastLogin() {
 	u.Last_login = time.Now().String()
 	Dbm.Update(u)
 }
