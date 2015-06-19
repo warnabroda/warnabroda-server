@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	// "fmt"
+	"fmt"
 	"github.com/coopernurse/gorp"
 	"github.com/martini-contrib/sessionauth"
 	"gitlab.com/warnabroda/warnabrodagomartini/models"
@@ -34,7 +34,7 @@ const (
 
 func ListWarnings(entity models.Warn, enc Encoder, user sessionauth.User, db gorp.SqlExecutor) (int, string) {
 
-	u := models.GetAuthenticatedUser(user)
+	u := UserById(user.UniqueId().(int), db)
 
 	if user.IsAuthenticated() && u.UserRole == models.ROLE_ADMIN {
 		sql := "SELECT w.id, msg.name AS message, ct.name AS contact_type, w.contact, w.sent, w.created_date FROM warnings AS w "
@@ -87,7 +87,10 @@ func WarnaCounter(enc Encoder, db gorp.SqlExecutor, user sessionauth.User) (int,
 
 	counts := models.CountWarning{}
 
-	u := models.GetAuthenticatedUser(user)
+	fmt.Println(user)
+	u := UserById(user.UniqueId().(int), db)
+	fmt.Println(u)
+	fmt.Println(models.ROLE_ADMIN)
 
 	if user.IsAuthenticated() && u.UserRole == models.ROLE_ADMIN {
 

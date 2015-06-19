@@ -50,7 +50,7 @@ func GetMessages(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, s
 
 func GetMessagesStats(enc Encoder, db gorp.SqlExecutor, user sessionauth.User) (int, string) {
 
-	u := models.GetAuthenticatedUser(user)
+	u := UserById(user.UniqueId().(int), db)
 
 	if user.IsAuthenticated() && u.UserRole == models.ROLE_ADMIN {
 		var messages []models.Messages
@@ -111,7 +111,7 @@ func AddMessage(entity models.DefaultStruct, w http.ResponseWriter, enc Encoder,
 
 func SaveOrUpdateMessage(entity models.MessageStruct, enc Encoder, db gorp.SqlExecutor, user sessionauth.User) (int, string) {
 
-	u := models.GetAuthenticatedUser(user)
+	u := UserById(user.UniqueId().(int), db)
 
 	if user.IsAuthenticated() && u.UserRole == models.ROLE_ADMIN {
 

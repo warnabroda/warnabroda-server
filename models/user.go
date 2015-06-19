@@ -72,17 +72,6 @@ func (u *User) GetById(id interface{}) error {
 	return nil
 }
 
-func GetAuthenticatedUser(user sessionauth.User) *User {
-	u := &User{}
-
-	err := Dbm.SelectOne(u, "SELECT * FROM users WHERE id = ?", user.UniqueId())
-	if err != nil {
-		return nil
-	}
-
-	return u
-}
-
 // Should be called every time a successful login occurs
 func (u *User) UpdateLastLogin() {
 	u.Last_login = time.Now().String()

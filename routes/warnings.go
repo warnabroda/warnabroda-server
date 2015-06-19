@@ -77,7 +77,7 @@ func GetWarning(id int64, db gorp.SqlExecutor) *models.Warning {
 
 func GetWarningDetail(enc Encoder, db gorp.SqlExecutor, user sessionauth.User, parms martini.Params) (int, string) {
 
-	u := models.GetAuthenticatedUser(user)
+	u := UserById(user.UniqueId().(int), db)
 
 	if user.IsAuthenticated() && u.UserRole == models.ROLE_ADMIN {
 
