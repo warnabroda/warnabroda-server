@@ -111,7 +111,6 @@ func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {
 		HTMLContent:  true,
 	}
 
-	SendMail(email)
 	sent, response := SendMail(email)
 
 	if sent {
