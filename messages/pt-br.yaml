@@ -22,7 +22,7 @@ MSG_IGNORE_REQUEST_EXISTS				: "Solicitações de bloqueio expiram em 24 horas. 
 MSG_TOO_MANY_IGNOREME_REQUESTS			: "Ooopa! Pra que tantas solicitações Broda? Se você possui mais de 2 contatos à bloquear por vez, entre em contato com o Warn A Broda."
 MSG_CONFIRM_IGNOREME					: "Favor confirmar bloqueio de contato"
 MSG_EMAIL_SUBJECT_ADD_IGNORE_LIST		: "Adicionar seu contato à ignore list do Warn A Broda"
-MSG_SMS_IGNORE_CONFIRMATION_REQUEST		: "Pro Warn A Broda lhe ignorar, por favor entre em: {{url}} e informe o código"
+MSG_SMS_IGNORE_CONFIRMATION_REQUEST		: "Para o Warn A Broda lhe ignorar, por favor entre em: \r\n{{url}} e informe o código:\r\n"
 MSG_FOOTER_REPLY						: "Responda para seu Broda anônimo em {{url_reply}} "
 MSG_SUBJECT_REPLY_REQUEST				: "Conforme sua solicitação"
 MSG_REPLY_BODY_GREETING					: "Olha que noticia massa!"

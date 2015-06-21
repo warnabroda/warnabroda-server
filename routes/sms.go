@@ -1,12 +1,12 @@
 package routes
 
 import (
+	// "fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
-	//	"fmt"
 
 	"github.com/coopernurse/gorp"
 	"gitlab.com/warnabroda/warnabrodagomartini/messages"

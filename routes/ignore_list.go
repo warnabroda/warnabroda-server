@@ -1,6 +1,7 @@
 package routes
 
 import (
+	//"fmt"
 	"math/rand"
 	"net/http"
 	"os"
@@ -39,7 +40,7 @@ func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor) {
 
 	sms := &models.SMS{
 		CredencialKey: os.Getenv("WARNACREDENCIAL"),
-		Content:       strings.Replace(messages.GetLocaleMessage(entity.Lang_key, "MSG_SMS_IGNORE_CONFIRMATION_REQUEST"), "{{url}}", entity.Confirmation_code, 1),
+		Content:       strings.Replace(messages.GetLocaleMessage(entity.Lang_key, "MSG_SMS_IGNORE_CONFIRMATION_REQUEST"), "{{url}}", models.URL_WARNABRODA, 1) + entity.Confirmation_code,
 		URLPath:       models.URL_MAIN_MOBILE_PRONTO,
 		Scheme:        "http",
 		Host:          models.URL_DOMAIN_MOBILE_PRONTO,
@@ -84,7 +85,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 			Lang_key: entity.Lang_key,
 			Type:     models.MSG_TYPE_IGNORE,
 		}
-		return http.StatusCreated, Must(enc.EncodeOne(status))
+		return http.StatusUnauthorized, Must(enc.EncodeOne(status))
 	}
 
 	ingnored := InIgnoreList(db, entity.Contact)
@@ -97,7 +98,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 			Lang_key: entity.Lang_key,
 		}
 
-		return http.StatusCreated, Must(enc.EncodeOne(status))
+		return http.StatusUnauthorized, Must(enc.EncodeOne(status))
 
 	} else if ingnored != nil {
 		status = &models.DefaultStruct{
@@ -106,7 +107,7 @@ func AddIgnoreList(entity models.Ignore_List, w http.ResponseWriter, enc Encoder
 			Lang_key: entity.Lang_key,
 		}
 
-		return http.StatusCreated, Must(enc.EncodeOne(status))
+		return http.StatusUnauthorized, Must(enc.EncodeOne(status))
 	}
 
 	rand.Seed(time.Now().UTC().UnixNano())

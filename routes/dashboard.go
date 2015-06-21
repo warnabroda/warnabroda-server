@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"fmt"
+	//"fmt"
 	"github.com/coopernurse/gorp"
 	"github.com/martini-contrib/sessionauth"
 	"gitlab.com/warnabroda/warnabrodagomartini/models"
@@ -87,10 +87,7 @@ func WarnaCounter(enc Encoder, db gorp.SqlExecutor, user sessionauth.User) (int,
 
 	counts := models.CountWarning{}
 
-	fmt.Println(user)
 	u := UserById(user.UniqueId().(int), db)
-	fmt.Println(u)
-	fmt.Println(models.ROLE_ADMIN)
 
 	if user.IsAuthenticated() && u.UserRole == models.ROLE_ADMIN {
 

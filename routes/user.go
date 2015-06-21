@@ -41,7 +41,8 @@ func GetUserById(enc Encoder, db gorp.SqlExecutor, user sessionauth.User, parms 
 func UserById(id int, db gorp.SqlExecutor) *models.User {
 
 	obj, err := db.Get(models.User{}, id)
-	if err != nil {
+
+	if err != nil || obj == nil {
 		return nil
 	}
 	entity := obj.(*models.User)
