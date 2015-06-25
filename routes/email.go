@@ -153,6 +153,8 @@ func SendMail(email *models.Email) (bool, string) {
 	checkErr(err, "SendMail File Opening ERROR")
 	resp, _ := json.Marshal(res[0])
 
+	fmt.Println(string(resp))
+
 	return res[0] != nil, string(resp)
 }
 
