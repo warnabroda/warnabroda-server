@@ -52,3 +52,4 @@ MSG_WHATSAPP_REPLY_DEFAULT				: "Se você quiser, pode responder pro seu broda a
 MSG_WHATSAPP_FOOTER_DEFAULT				: "Ou se você preferir nos ignorar pra sempre :'( entre em: {{url_ignoreme}}"
 MSG_WHATSAPP_REPLY_REQUEST				: "Olá, quando a mensagem \r\n \r\n '{{msg}}' \r\n \r\n que você enviou para \r\n \r\n {{contact}} \r\n \r\n for respondida, você será avisado por aqui. \r\n \r\nCódigo da mensagem: "
 MSG_WHATSAPP_WITHOUT_REPLY				: "Que tal mandar um recado anônimo você também? www.warnabroda.com "
+MSG_REPLY_SENDER_MSG					: "Você será avisado no contato abaixo assim que houver uma resposta!"
