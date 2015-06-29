@@ -184,15 +184,19 @@ func messagesToIfaceM(v []models.Messages) []interface{} {
 }
 
 func GetRandomMessagesByLanguage(amount int, lang_key string, db gorp.SqlExecutor) []models.DefaultStruct {
-	fmt.Println("GetRandomMessagesByLanguage")
+	fmt.Println("GetRandomMessagesByLanguage: " + strconv.Itoa(amount) + ", " + lang_key)
 	var messages []models.DefaultStruct
 	_, err := db.Select(&messages, SQL_RANDOM_MESSAGES, lang_key)
 
+	//fmt.Println(strconv.Itoa(len(messages)))
 	for len(messages) != amount {
+		messages = nil
+		//fmt.Println("Antes: " + strconv.Itoa(len(messages)))
 		_, err = db.Select(&messages, SQL_RANDOM_MESSAGES, lang_key)
 		if err != nil {
 			break
 		}
+		//fmt.Println("Depois: " + strconv.Itoa(len(messages)))
 	}
 
 	return messages
