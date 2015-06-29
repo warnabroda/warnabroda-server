@@ -29,6 +29,7 @@ const (
 )
 
 func BuildCountWarningsSql(count_by string) string {
+	fmt.Println("BuildCountWarningsSql")
 
 	sql := " SELECT COUNT(*) FROM warnabroda.warnings "
 	sql += " WHERE sent = :sent AND (created_date + INTERVAL :interval HOUR) > NOW()"
@@ -129,7 +130,7 @@ func ConfirmWarning(entity models.DefaultStruct, enc Encoder, db gorp.SqlExecuto
 }
 
 func isInvalidWarning(entity *models.Warning) bool {
-
+	fmt.Println("isInvalidWarning")
 	return (entity.Id_message < 1) || (entity.Id_contact_type < 1) || (len(entity.Contact) < 5) || (len(entity.Lang_key) < 2) || (len(entity.Ip) < 6)
 
 }
@@ -137,7 +138,7 @@ func isInvalidWarning(entity *models.Warning) bool {
 // Receives a warning tru, inserts the request and process the warning and then respond to the interface
 //TODO: use (session sessions.Session, r *http.Request) to prevent flood
 func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor, r *http.Request) (int, string) {
-
+	fmt.Println("AddWarning")
 	if isInvalidWarning(&entity) {
 		return http.StatusBadRequest, Must(enc.EncodeOne(entity))
 	}
@@ -182,6 +183,7 @@ func AddWarning(entity models.Warning, enc Encoder, db gorp.SqlExecutor, r *http
 //		- @routers.email.ProcessEmail
 //		- @routers.sms.ProcessSMS
 func processWarn(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct) {
+	fmt.Println("processWarn")
 
 	status.Lang_key = warning.Lang_key
 	if isSameWarnSentByIp(warning, db) {
@@ -213,6 +215,7 @@ func processWarn(warning *models.Warning, db gorp.SqlExecutor, status *models.De
 }
 
 func ProcessWarnReply(warning *models.Warning, db gorp.SqlExecutor) {
+	fmt.Println("ProcessWarnReply")
 
 	warning.WarnResp.Id_warning = warning.Id
 
@@ -245,6 +248,7 @@ func GenerateSha1(str string) string {
 
 // return true if a warn, with same message and same ip, attempts to be sent, if so respond back to interface denying the service;
 func isSameWarnSentByIp(warning *models.Warning, db gorp.SqlExecutor) bool {
+	fmt.Println("isSameWarnSentByIp")
 
 	exists, err := db.SelectInt(BuildCountWarningsSql("same_message_by_ip"), map[string]interface{}{
 		"sent":       true,
@@ -260,6 +264,7 @@ func isSameWarnSentByIp(warning *models.Warning, db gorp.SqlExecutor) bool {
 
 // return true if a warn, with same message and different ip, attempts to be sent more than twice, if so respond back to interface denying the service;
 func isSameWarnSentTwiceOrMoreDifferentIp(warning *models.Warning, db gorp.SqlExecutor) bool {
+	fmt.Println("isSameWarnSentTwiceOrMoreDifferentIp")
 
 	exists, err := db.SelectInt(BuildCountWarningsSql("same_message"), map[string]interface{}{
 		"sent":       true,

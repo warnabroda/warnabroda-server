@@ -3,7 +3,7 @@ package routes
 import (
 	"encoding/json"
 	"flag"
-	//"fmt"
+	"fmt"
 	"os"
 	"strings"
 
@@ -35,6 +35,7 @@ func init() {
 }
 
 func ProcessWhatsapp(entity *models.Warning, db gorp.SqlExecutor) {
+	fmt.Println("ProcessWhatsapp")
 
 	var message string
 	structMsg := SelectMessage(db, entity.Id_message)
@@ -84,6 +85,7 @@ func ProcessWhatsapp(entity *models.Warning, db gorp.SqlExecutor) {
 }
 
 func processReply(entity *models.Warning, db gorp.SqlExecutor) {
+	fmt.Println("processReply")
 	if entity.Id_contact_type == 1 {
 		SendEmailReplyRequestAcknowledge(entity.WarnResp, db)
 	} else {
@@ -92,6 +94,7 @@ func processReply(entity *models.Warning, db gorp.SqlExecutor) {
 }
 
 func SendWhatsappReplyDone(entity *models.Warning, db gorp.SqlExecutor) {
+	fmt.Println("SendWhatsappReplyDone")
 
 	message := SelectMessage(db, entity.Id_message)
 
@@ -115,8 +118,8 @@ func SendWhatsappReplyDone(entity *models.Warning, db gorp.SqlExecutor) {
 	sendWhatsapp(&whatsMsg)
 }
 
-//"Hola, cuando el mensaje \r\n \r\n '{{msg}}' \r\n\r\n que ha enviado a \r\n\r\n {{contact}} \r\n\r\n obtener una respuesta, se le asomó aquí \r\n\r\nCódigo del Mensaje:"
 func SendWhatsappReplyRequestAcknowledge(entity *models.Warning, db gorp.SqlExecutor) {
+	fmt.Println("SendWhatsappReplyRequestAcknowledge")
 
 	msg := SelectMessage(db, entity.Id_message)
 
@@ -136,6 +139,7 @@ func SendWhatsappReplyRequestAcknowledge(entity *models.Warning, db gorp.SqlExec
 }
 
 func SendWhatsappIgnoreRequest(entity *models.Ignore_List, db gorp.SqlExecutor) {
+	fmt.Println("SendWhatsappIgnoreRequest")
 
 	message := strings.Replace(messages.GetLocaleMessage(entity.Lang_key, "MSG_SMS_IGNORE_CONFIRMATION_REQUEST"), "{{url}}", entity.Confirmation_code, 1)
 	footer := messages.GetLocaleMessage(entity.Lang_key, "MSG_FOOTER")
@@ -151,6 +155,8 @@ func SendWhatsappIgnoreRequest(entity *models.Ignore_List, db gorp.SqlExecutor) 
 }
 
 func sendWhatsapp(entity *models.Whatsapp) {
+	fmt.Println("sendWhatsapp")
+
 	entityJson, _ := json.Marshal(entity)
 	body := string(entityJson[:])
 

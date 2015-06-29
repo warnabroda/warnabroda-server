@@ -21,10 +21,12 @@ var (
 
 // For now all due verifications regarding send rules is done previewsly, here we just async the e-mail send of the warn
 func ProcessEmail(entity *models.Warning, db gorp.SqlExecutor) {
+	fmt.Println("ProcessEmail")
 	sendEmailWarn(entity, db)
 }
 
 func SendEmailReplyDone(entity *models.Warning, db gorp.SqlExecutor) {
+	fmt.Println("SendEmailReplyDone")
 
 	//reads the e-mail template from a local file
 	wab_email_template := wab_root + "/resource/reply.html"
@@ -56,6 +58,7 @@ func SendEmailReplyDone(entity *models.Warning, db gorp.SqlExecutor) {
 }
 
 func SendEmailReplyRequestAcknowledge(entity *models.WarningResp, db gorp.SqlExecutor) {
+	fmt.Println("SendEmailReplyRequestAcknowledge")
 
 	//reads the e-mail template from a local file
 	wab_email_template := wab_root + "/resource/warning.html"
@@ -84,6 +87,7 @@ func SendEmailReplyRequestAcknowledge(entity *models.WarningResp, db gorp.SqlExe
 
 //Deploys the message to be sent into an email struct, call the service and in case of successful send, update the warn as sent.
 func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {
+	fmt.Println("sendEmailWarn")
 
 	//reads the e-mail template from a local file
 	wab_email_template := wab_root + "/resource/warning.html"
@@ -97,7 +101,7 @@ func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {
 
 	subject := GetRandomSubject(entity.Lang_key)
 
-	email_content := sendWarningSetup(template_email_string, entity, db)
+	email_content := sendWarningSetup(subject.Name, template_email_string, entity, db)
 
 	email := &models.Email{
 		TemplatePath: wab_email_template,
@@ -120,6 +124,7 @@ func sendEmailWarn(entity *models.Warning, db gorp.SqlExecutor) {
 }
 
 func SendMail(email *models.Email) (bool, string) {
+	fmt.Println("SendMail")
 
 	mandrill.Key = mandrill_key
 	// you can test your API key with Ping
@@ -158,12 +163,12 @@ func SendMail(email *models.Email) (bool, string) {
 	return res[0] != nil, string(resp)
 }
 
-func sendWarningSetup(email string, entity *models.Warning, db gorp.SqlExecutor) string {
+func sendWarningSetup(mailSubject string, email string, entity *models.Warning, db gorp.SqlExecutor) string {
+	fmt.Println("sendWarningSetup")
 
 	var email_content string
-	subject := GetRandomSubject(entity.Lang_key)
 	message := SelectMessage(db, entity.Id_message)
-	email_content = strings.Replace(email, "{{subject}}", subject.Name, 1)
+	email_content = strings.Replace(email, "{{subject}}", mailSubject, 1)
 	email_content = strings.Replace(email_content, "{{broda_msg_header_greet}}", messages.GetLocaleMessage(entity.Lang_key, "MSG_EMAIL_GREET"), 1)
 	email_content = strings.Replace(email_content, "{{warning}}", message.Name, 1)
 	email_content = strings.Replace(email_content, "{{broda_msg_footer_greet}}", messages.GetLocaleMessage(entity.Lang_key, "MSG_FOOTER"), 1)
@@ -195,6 +200,7 @@ func sendWarningSetup(email string, entity *models.Warning, db gorp.SqlExecutor)
 }
 
 func sendReplyAcknowledgeSetup(email string, entity *models.WarningResp, db gorp.SqlExecutor) string {
+	fmt.Println("sendReplyAcknowledgeSetup")
 
 	var email_content string
 	email_content = strings.Replace(email, "{{subject}}", messages.GetLocaleMessage(entity.Lang_key, "MSG_SUBJECT_REPLY_REQUEST"), 1)
@@ -218,6 +224,7 @@ func sendReplyAcknowledgeSetup(email string, entity *models.WarningResp, db gorp
 }
 
 func sendReplySetup(email string, entity *models.Warning, db gorp.SqlExecutor) string {
+	fmt.Println("sendReplySetup")
 
 	var email_content string
 	email_content = strings.Replace(email, "{{subject}}", messages.GetLocaleMessage(entity.Lang_key, "MSG_REPLY_BODY_GREETING"), 1)

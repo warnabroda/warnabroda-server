@@ -1,7 +1,7 @@
 package routes
 
 import (
-	//"fmt"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"os"
@@ -194,6 +194,7 @@ func UpdateIgnoreList(entity *models.Ignore_List, db gorp.SqlExecutor) {
 // Check if the contact already requested an ignore list add.
 // In case the contact exists on the list the method returns it
 func InIgnoreList(db gorp.SqlExecutor, contact string) *models.Ignore_List {
+	fmt.Println("InIgnoreList")
 
 	ignored := models.Ignore_List{}
 

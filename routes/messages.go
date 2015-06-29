@@ -184,6 +184,7 @@ func messagesToIfaceM(v []models.Messages) []interface{} {
 }
 
 func GetRandomMessagesByLanguage(amount int, lang_key string, db gorp.SqlExecutor) []models.DefaultStruct {
+	fmt.Println("GetRandomMessagesByLanguage")
 	var messages []models.DefaultStruct
 	_, err := db.Select(&messages, SQL_RANDOM_MESSAGES, lang_key)
 
