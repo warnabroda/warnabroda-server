@@ -35,6 +35,22 @@ const (
 		" ORDER BY m.id ASC LIMIT 7 "
 )
 
+var messagesEn []models.DefaultStruct
+var messagesEs []models.DefaultStruct
+var messagesPt []models.DefaultStruct
+
+func init() {
+	_, errEn := models.Dbm.Select(&messagesEn, SQL_MESSAGES_BY_LANG_KEY, "en")
+	checkErr(errEn, "select failed")
+
+	_, errEs := models.Dbm.Select(&messagesEs, SQL_MESSAGES_BY_LANG_KEY, "es")
+	checkErr(errEs, "select failed")
+
+	_, errPt := models.Dbm.Select(&messagesPt, SQL_MESSAGES_BY_LANG_KEY, "pt-br")
+	checkErr(errPt, "select failed")
+
+}
+
 func GetMessages(enc Encoder, db gorp.SqlExecutor, parms martini.Params) (int, string) {
 	var messages []models.DefaultStruct
 	lang_key := parms["lang_key"]
@@ -185,18 +201,22 @@ func messagesToIfaceM(v []models.Messages) []interface{} {
 
 func GetRandomMessagesByLanguage(amount int, lang_key string, db gorp.SqlExecutor) []models.DefaultStruct {
 	fmt.Println("GetRandomMessagesByLanguage: " + strconv.Itoa(amount) + ", " + lang_key)
-	var messages []models.DefaultStruct
-	_, err := db.Select(&messages, SQL_RANDOM_MESSAGES, lang_key)
 
-	//fmt.Println(strconv.Itoa(len(messages)))
-	for len(messages) != amount {
-		messages = nil
-		//fmt.Println("Antes: " + strconv.Itoa(len(messages)))
-		_, err = db.Select(&messages, SQL_RANDOM_MESSAGES, lang_key)
-		if err != nil {
-			break
+	messages := make([]models.DefaultStruct, amount)
+
+	index := 0
+	for index != amount {
+		if lang_key == "pt-br" {
+			messages[index] = messagesPt[index]
 		}
-		//fmt.Println("Depois: " + strconv.Itoa(len(messages)))
+		if lang_key == "en" {
+			messages[index] = messagesEn[index]
+		}
+		if lang_key == "es" {
+			messages[index] = messagesEs[index]
+		}
+		index++
+
 	}
 
 	return messages
