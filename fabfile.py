@@ -11,7 +11,7 @@ def deploy():
 		run("git pull")
 		run("go get")
 		run("go build")
-		run("cp -f warnabrodagomartini /opt/warnabroda/project/server/server")
+		run("mv warnabrodagomartini /opt/warnabroda/project/server/server")
 		run("cp -f tools/* /opt/warnabroda/project/server/tools")
 		run("cp -f resource/* /opt/warnabroda/project/server/resource")
 		run("cp -f messages/*yaml /opt/warnabroda/project/server/messages")

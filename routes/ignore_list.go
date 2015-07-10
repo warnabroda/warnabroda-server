@@ -40,7 +40,7 @@ func sendSMSIgnoreme(entity *models.Ignore_List, db gorp.SqlExecutor) {
 
 	sms := &models.SMS{
 		CredencialKey: os.Getenv("WARNACREDENCIAL"),
-		Content:       strings.Replace(messages.GetLocaleMessage(entity.Lang_key, "MSG_SMS_IGNORE_CONFIRMATION_REQUEST"), "{{url}}", models.URL_WARNABRODA, 1) + entity.Confirmation_code,
+		Content:       strings.Replace(messages.GetLocaleMessage(entity.Lang_key, "MSG_SMS_IGNORE_CONFIRMATION_REQUEST"), "{{url}}", models.URL_IGNORE_REQUEST, 1) + entity.Confirmation_code,
 		URLPath:       models.URL_MAIN_MOBILE_PRONTO,
 		Scheme:        "http",
 		Host:          models.URL_DOMAIN_MOBILE_PRONTO,
