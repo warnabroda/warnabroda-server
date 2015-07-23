@@ -9,8 +9,8 @@ import (
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/sessionauth"
 	"github.com/martini-contrib/sessions"
-	"gitlab.com/warnabroda/warnabrodagomartini/messages"
-	"gitlab.com/warnabroda/warnabrodagomartini/models"
+	"github.com/warnabroda/warnabroda-server/messages"
+	"github.com/warnabroda/warnabroda-server/models"
 	// "encoding/json"
 	// "strings"
 )

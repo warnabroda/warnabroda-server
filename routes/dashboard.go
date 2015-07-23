@@ -7,7 +7,7 @@ import (
 	//"fmt"
 	"github.com/coopernurse/gorp"
 	"github.com/martini-contrib/sessionauth"
-	"gitlab.com/warnabroda/warnabrodagomartini/models"
+	"github.com/warnabroda/warnabroda-server/models"
 )
 
 const (

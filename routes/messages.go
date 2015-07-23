@@ -8,7 +8,7 @@ import (
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/sessionauth"
-	"gitlab.com/warnabroda/warnabrodagomartini/models"
+	"github.com/warnabroda/warnabroda-server/models"
 )
 
 const (

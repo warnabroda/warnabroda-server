@@ -11,7 +11,7 @@ import (
 	//	"time"
 
 	"github.com/coopernurse/gorp"
-	"gitlab.com/warnabroda/warnabrodagomartini/models"
+	"github.com/warnabroda/warnabroda-server/models"
 	"gopkg.in/redis.v3"
 )
 

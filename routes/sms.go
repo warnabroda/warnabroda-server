@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/coopernurse/gorp"
-	"gitlab.com/warnabroda/warnabrodagomartini/messages"
-	"gitlab.com/warnabroda/warnabrodagomartini/models"
+	"github.com/warnabroda/warnabroda-server/messages"
+	"github.com/warnabroda/warnabroda-server/models"
 )
 
 func ProcessSMS(warning *models.Warning, db gorp.SqlExecutor, status *models.DefaultStruct) {

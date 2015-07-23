@@ -7,11 +7,11 @@ import (
 
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
-	"gitlab.com/warnabroda/warnabrodagomartini/models"
+	"github.com/warnabroda/warnabroda-server/models"
 )
 
 const (
-	SQL_CONTACT_TYPES_BY_ID	= "SELECT * FROM contact_types ORDER BY id"
+	SQL_CONTACT_TYPES_BY_ID = "SELECT * FROM contact_types ORDER BY id"
 )
 
 func GetContact_types(enc Encoder, db gorp.SqlExecutor) (int, string) {
