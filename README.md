@@ -1,6 +1,8 @@
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/warnabroda/warnabroda-server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-# Warn A Broda: Anonymous Messaging Service - www.warnabroda.com
+# Warn A Broda: Anonymous Messaging Service - 
+## www.warnabroda.com
+### facebook.com/warnabroda
 
 First of all, we would like to thank everyone willing to contribute with Warnabroda, we hope you may fell as owner of Warn A Broda as we do, warnabroda will enjoy the smallest effort you can offer, so please clone our repository and make as many changes as you like! And send it back to us so we can put it live...
 
